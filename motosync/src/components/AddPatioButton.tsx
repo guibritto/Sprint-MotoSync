@@ -8,7 +8,11 @@ type AddPatioButtonProps = {
   patios: { nome: string; endereco: string }[];
 };
 
-export function AddPatioButton({ onAdd, colorScheme, patios = [] }: AddPatioButtonProps) {
+export function AddPatioButton({
+  onAdd,
+  colorScheme,
+  patios = [],
+}: AddPatioButtonProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [nome, setNome] = useState("");
   const [endereco, setEndereco] = useState("");
@@ -42,10 +46,12 @@ export function AddPatioButton({ onAdd, colorScheme, patios = [] }: AddPatioButt
   return (
     <>
       <TouchableOpacity
-        className="absolute left-3 right-24 bottom-16 bg-green-500 rounded-full p-4 flex-row justify-center items-center z-10"
+        className="absolute left-3 right-3 bottom-16 bg-green-500 rounded-full p-4 flex-row justify-center items-center z-10"
         onPress={() => setModalVisible(true)}
       >
-        <Text className="text-white text-xl font-bold mr-2">Adicionar Pátio</Text>
+        <Text className="text-white text-2xl font-bold mr-2">
+          Adicionar Pátio
+        </Text>
         <Ionicons name="add" size={32} color="#fff" />
       </TouchableOpacity>
       <Modal
@@ -55,14 +61,22 @@ export function AddPatioButton({ onAdd, colorScheme, patios = [] }: AddPatioButt
         onRequestClose={() => setModalVisible(false)}
       >
         <View className="flex-1 bg-black/40 justify-center items-center">
-          <View className={`w-96 p-6 rounded-xl ${colorScheme === "light" ? "bg-white" : "bg-gray-800"}`}>
-            <Text className="text-2xl font-bold mb-4 text-green-600">Novo Pátio</Text>
+          <View
+            className={`w-96 p-6 rounded-xl ${
+              colorScheme === "light" ? "bg-white" : "bg-gray-800"
+            }`}
+          >
+            <Text className="text-2xl font-bold mb-4 text-green-600">
+              Novo Pátio
+            </Text>
             <TextInput
-              className={`border-b border-green-400 mb-2 p-2 font-bold text-2xl ${colorScheme === "light" ? "text-gray-800" : "text-gray-200"}`}
+              className={`border-b border-green-400 mb-2 p-2 font-bold text-2xl ${
+                colorScheme === "light" ? "text-gray-800" : "text-gray-200"
+              }`}
               placeholder="Nome do Pátio"
               placeholderTextColor="#999"
               value={nome}
-              onChangeText={text => {
+              onChangeText={(text) => {
                 setNome(text);
                 setNomeInvalido(false);
                 setNomeDuplicado(false);
@@ -80,11 +94,13 @@ export function AddPatioButton({ onAdd, colorScheme, patios = [] }: AddPatioButt
               </Text>
             )}
             <TextInput
-              className={`border-b border-green-400 mb-2 p-2 font-bold text-2xl ${colorScheme === "light" ? "text-gray-800" : "text-gray-200"}`}
+              className={`border-b border-green-400 mb-2 p-2 font-bold text-2xl ${
+                colorScheme === "light" ? "text-gray-800" : "text-gray-200"
+              }`}
               placeholder="Endereço"
               placeholderTextColor="#999"
               value={endereco}
-              onChangeText={text => {
+              onChangeText={(text) => {
                 setEndereco(text);
                 setEnderecoInvalido(false);
               }}
@@ -100,13 +116,17 @@ export function AddPatioButton({ onAdd, colorScheme, patios = [] }: AddPatioButt
                 className="bg-gray-300 rounded-lg px-4 py-2"
                 onPress={() => setModalVisible(false)}
               >
-                <Text className="text-black text-xl px-6 py-2 font-bold">Cancelar</Text>
+                <Text className="text-black text-xl px-6 py-2 font-bold">
+                  Cancelar
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="bg-green-600 rounded-lg px-4 py-2"
                 onPress={handleAdd}
               >
-                <Text className="text-white text-xl px-6 py-2 font-bold">Salvar</Text>
+                <Text className="text-white text-xl px-6 py-2 font-bold">
+                  Salvar
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

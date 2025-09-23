@@ -78,7 +78,7 @@ export function DeletePatioButton({
         onPress={() => setModalVisible(true)}
         accessibilityLabel={`Excluir ${patio.nome}`}
       >
-        <Ionicons name="trash" size={38} color="#e11d48" />
+        <Ionicons name="trash" size={32} color="#e11d48" />
       </TouchableOpacity>
       <Modal
         visible={modalVisible}

@@ -30,10 +30,25 @@ export default function Cadastro() {
   }, []);
 
   async function handleCadastro() {
+    // Validação dos campos obrigatórios
     if (!nome || !email || !senha || (cargo === "Funcionario" && !patio)) {
       Alert.alert("Preencha todos os campos obrigatórios.");
       return;
     }
+
+    // Validação da senha: deve conter pelo menos um número e um caractere especial
+    const temNumero = /\d/.test(senha);
+    const temEspecial = /[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;/]/.test(senha);
+
+    if (!temNumero) {
+      Alert.alert("A senha deve conter pelo menos um número.");
+      return;
+    }
+    if (!temEspecial) {
+      Alert.alert("A senha deve conter pelo menos um caractere especial.");
+      return;
+    }
+
     const novoUsuario = {
       nome,
       email,
@@ -60,7 +75,7 @@ export default function Cadastro() {
         colorScheme === "light" ? "bg-white" : "bg-black"
       }`}
     >
-      <Text className="text-4xl text-center font-bold mt-12 mb-8 text-green-400">
+      <Text className="text-4xl text-center font-bold mt-20 mb-12 text-green-400">
         Cadastro de Funcionário
       </Text>
 
