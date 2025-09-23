@@ -1,7 +1,0 @@
-[
-  { "id_patio": 1, "nome": "Butantã", "endereco": "Rua Martins, 169"},
-  { "id_patio": 2, "nome": "Paulista", "endereco": "Rua João Padre Manuel, 319"},
-  { "id_patio": 3, "nome": "Mooca", "endereco": "Rua Itajaí, 116"},
-  { "id_patio": 4, "nome": "Interlagos", "endereco": "Rua Manuel de Teffé, 80"},
-  { "id_patio": 5, "nome": "Santana", "endereco": "Rua José Margarido, 254"}
-]
