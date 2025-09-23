@@ -1,8 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState } from "react";
-import { Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
-import vagasData from "../data/vagasMock.json"; // Importa o mock de vagas
+import {
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Pressable,
+} from "react-native";
+import vagasData from "../data/vagasMock.json";
 
 type Patio = {
   id_patio: number;
@@ -11,24 +18,29 @@ type Patio = {
 };
 
 type DeletePatioButtonProps = {
-  patios: Patio[];
+  patio: Patio;
   onDelete: (nome: string) => void;
   colorScheme: "light" | "dark";
 };
 
-export function DeletePatioButton({ patios, onDelete, colorScheme }: DeletePatioButtonProps) {
+export function DeletePatioButton({
+  patio,
+  onDelete,
+  colorScheme,
+}: DeletePatioButtonProps) {
   const [modalVisible, setModalVisible] = useState(false);
-  const [nome, setNome] = useState("");
-  const [nomeInvalido, setNomeInvalido] = useState(false);
+  const [input, setInput] = useState("");
+  const [erro, setErro] = useState("");
   const [possuiVagas, setPossuiVagas] = useState(false);
 
   async function handleDelete() {
-    const patio = patios.find(
-      (p) => p.nome.trim().toLowerCase() === nome.trim().toLowerCase()
-    );
-    setNomeInvalido(!patio);
+    setErro("");
     setPossuiVagas(false);
-    if (!patio) return;
+
+    if (input.trim() !== "Deletar") {
+      setErro('Digite "Deletar" para confirmar.');
+      return;
+    }
 
     // Busca vagas do AsyncStorage e do mock
     const storedVagas = await AsyncStorage.getItem("vagas");
@@ -48,24 +60,25 @@ export function DeletePatioButton({ patios, onDelete, colorScheme }: DeletePatio
     const stored = await AsyncStorage.getItem("patios");
     const patiosStorage = stored ? JSON.parse(stored) : [];
     const novosPatios = patiosStorage.filter(
-      (p: any) => p.nome.trim().toLowerCase() !== nome.trim().toLowerCase()
+      (p: any) =>
+        p.nome.trim().toLowerCase() !== patio.nome.trim().toLowerCase()
     );
     await AsyncStorage.setItem("patios", JSON.stringify(novosPatios));
-    onDelete(nome);
+    onDelete(patio.nome);
     setModalVisible(false);
-    setNome("");
-    setNomeInvalido(false);
+    setInput("");
+    setErro("");
     setPossuiVagas(false);
   }
 
   return (
     <>
       <TouchableOpacity
-        className="absolute right-3 bottom-16 bg-red-500 rounded-full p-4 items-center justify-center z-10"
-        style={{ width: 56 }}
+        className="ml-2"
         onPress={() => setModalVisible(true)}
+        accessibilityLabel={`Excluir ${patio.nome}`}
       >
-        <Ionicons name="trash" size={28} color="#fff" />
+        <Ionicons name="trash" size={38} color="#e11d48" />
       </TouchableOpacity>
       <Modal
         visible={modalVisible}
@@ -73,29 +86,46 @@ export function DeletePatioButton({ patios, onDelete, colorScheme }: DeletePatio
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 bg-black/40 justify-center items-center">
-          <View className={`w-96 p-6 rounded-xl ${colorScheme === "light" ? "bg-white" : "bg-gray-800"}`}>
-            <Text className="text-2xl font-bold mb-4 text-red-600">Excluir Pátio</Text>
-            <Text className={`mb-2 ${colorScheme === "light" ? "text-gray-800" : "text-gray-200"}`}>
-              Digite o nome exato da filial que deseja excluir:
+        <Pressable
+          className="flex-1 bg-black/40 justify-center items-center"
+          onPress={() => setModalVisible(true)}
+        >
+          <View
+            className={`w-80 p-6 rounded-xl ${
+              colorScheme === "light" ? "bg-white" : "bg-gray-800"
+            }`}
+            // Impede que o clique dentro do modal feche ele
+            onStartShouldSetResponder={() => true}
+          >
+            <Text className="text-2xl font-bold mb-4 text-red-600">
+              Excluir Pátio
+            </Text>
+            <Text
+              className={`mb-2 ${
+                colorScheme === "light" ? "text-gray-800" : "text-gray-200"
+              }`}
+            >
+              Para excluir <Text className="font-bold">{patio.nome}</Text>,
+              digite <Text className="font-bold text-red-600">Deletar</Text>{" "}
+              abaixo:
             </Text>
             <TextInput
-              className={`border-b border-red-400 mb-2 p-2 font-bold text-xl ${colorScheme === "light" ? "text-gray-800" : "text-gray-200"}`}
-              placeholder="Nome da Filial"
+              className={`border-b border-red-400 mb-2 p-2 font-bold text-xl ${
+                colorScheme === "light" ? "text-gray-800" : "text-gray-200"
+              }`}
+              placeholder="Digite: Deletar"
               placeholderTextColor="#999"
-              value={nome}
-              onChangeText={text => {
-                setNome(text);
-                setNomeInvalido(false);
+              value={input}
+              onChangeText={(text) => {
+                setInput(text);
+                setErro("");
                 setPossuiVagas(false);
               }}
               autoCapitalize="none"
             />
-            {nomeInvalido && (
-              <Text className="text-red-500 text-xs mt-1">
-                Nenhuma filial encontrada com esse nome.
-              </Text>
-            )}
+            {erro ? (
+              <Text className="text-red-500 text-xs mt-1">{erro}</Text>
+            ) : null}
             {possuiVagas && (
               <Text className="text-red-500 text-xs mt-1">
                 Não é possível excluir uma filial que possui vagas cadastradas.
@@ -106,23 +136,29 @@ export function DeletePatioButton({ patios, onDelete, colorScheme }: DeletePatio
                 className="bg-gray-300 rounded-lg px-4 py-2"
                 onPress={() => {
                   setModalVisible(false);
-                  setNome("");
-                  setNomeInvalido(false);
+                  setInput("");
+                  setErro("");
                   setPossuiVagas(false);
                 }}
               >
-                <Text className="text-black px-6 py2 text-xl font-bold">Cancelar</Text>
+                <Text className="text-black px-6 py2 text-xl font-bold">
+                  Cancelar
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`rounded-lg px-4 py-2 ${nome.trim() ? "bg-red-600" : "bg-red-300"}`}
-                disabled={!nome.trim()}
+                className={`rounded-lg px-4 py-2 ${
+                  input.trim() === "Deletar" ? "bg-red-600" : "bg-red-300"
+                }`}
+                disabled={input.trim() !== "Deletar"}
                 onPress={handleDelete}
               >
-                <Text className="text-white px-6 py2 text-xl font-bold">Excluir</Text>
+                <Text className="text-white px-6 py2 text-xl font-bold">
+                  Excluir
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </Pressable>
       </Modal>
     </>
   );

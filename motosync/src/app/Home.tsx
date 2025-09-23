@@ -40,7 +40,9 @@ export default function Home() {
   const [filteredPatios, setFilteredPatios] = useState<Patio[]>([]);
   const [allVagas, setAllVagas] = useState<Vaga[]>([]);
   const [allMotos, setAllMotos] = useState<Moto[]>([]);
-  const [patios, setPatios] = useState<{ nome: string; endereco: string }[]>([]);
+  const [patios, setPatios] = useState<{ nome: string; endereco: string }[]>(
+    []
+  );
   const colorScheme = useColorScheme();
   const [menuVisible, setMenuVisible] = useState(false);
   const router = useRouter();
@@ -50,7 +52,9 @@ export default function Home() {
     // Patios
     const storedPatios = await AsyncStorage.getItem("patios");
     const patiosStorage = storedPatios ? JSON.parse(storedPatios) : [];
-    const nomesStorage = patiosStorage.map((p: any) => p.nome.trim().toLowerCase());
+    const nomesStorage = patiosStorage.map((p: any) =>
+      p.nome.trim().toLowerCase()
+    );
     const patiosMockSemDuplicados = patiosData.filter(
       (p) => !nomesStorage.includes(p.nome.trim().toLowerCase())
     );
@@ -83,7 +87,7 @@ export default function Home() {
 
   // Carregue os patios do AsyncStorage ao iniciar
   useEffect(() => {
-    AsyncStorage.getItem('patios').then(data => {
+    AsyncStorage.getItem("patios").then((data) => {
       if (data) setPatios(JSON.parse(data));
     });
   }, []);
@@ -122,23 +126,26 @@ export default function Home() {
 
   // Atualiza patios ao deletar
   async function handleDeletePatio(nome: string) {
-    const novosPatios = allPatios.filter(p => p.nome.trim().toLowerCase() !== nome.trim().toLowerCase());
+    const novosPatios = allPatios.filter(
+      (p) => p.nome.trim().toLowerCase() !== nome.trim().toLowerCase()
+    );
     await AsyncStorage.setItem("patios", JSON.stringify(novosPatios));
     await carregarDados();
   }
 
   // Função para calcular info das vagas em tempo real
   function getVagasInfo(id_patio: number) {
-    const vagas = allVagas.filter(v => v.id_patio === id_patio);
-    const sessoes = [...new Set(vagas.map(v => v.codigo[0]))];
-    const patioNome = allPatios.find(p => p.id_patio === id_patio)?.nome;
-    const vagasDisponiveis = vagas.filter(vaga =>
-      !allMotos.find(
-        m =>
-          m.vaga === vaga.codigo &&
-          m.patio === patioNome &&
-          (m.status === "Disponível" || m.status === "Manutenção")
-      )
+    const vagas = allVagas.filter((v) => v.id_patio === id_patio);
+    const sessoes = [...new Set(vagas.map((v) => v.codigo[0]))];
+    const patioNome = allPatios.find((p) => p.id_patio === id_patio)?.nome;
+    const vagasDisponiveis = vagas.filter(
+      (vaga) =>
+        !allMotos.find(
+          (m) =>
+            m.vaga === vaga.codigo &&
+            m.patio === patioNome &&
+            (m.status === "Disponível" || m.status === "Manutenção")
+        )
     ).length;
     return {
       totalVagas: vagas.length,
@@ -149,50 +156,96 @@ export default function Home() {
   }
 
   return (
-    <View className={`flex-1 ${colorScheme === "light" ? "bg-white" : "bg-black"}`}>
-      <MenuBar onMenuPress={() => setMenuVisible(true)} title='Patios' />
+    <View
+      className={`flex-1 ${colorScheme === "light" ? "bg-white" : "bg-black"}`}
+    >
+      <MenuBar onMenuPress={() => setMenuVisible(true)} title="Patios" />
       <Hamburger visible={menuVisible} onClose={() => setMenuVisible(false)} />
       <SearchHome value={search} onChangeText={handleSearch} />
       <View className="px-2 mb-60">
-      <FlatList
-        data={filteredPatios}
-        className={`mb-40 p-4 border-2 rounded-lg border-green-900 ${colorScheme === "light" ? "bg-gray-50" : "bg-gray-800"}`} 
-        keyExtractor={(item) => item.id_patio.toString()}
-        renderItem={({ item }) => {
-          const info = getVagasInfo(item.id_patio);
-          return (
-            <TouchableOpacity
-              className={`p-4 mb-2 mt-2 rounded-lg border-2 ${colorScheme === "light" ? "bg-gray-100 border-green-600" : "bg-gray-800 border-green-400"}`}
-              onPress={() => router.push({ pathname: "/Filial/[id_patio]", params: { id_patio: item.id_patio, nome: item.nome } })}
-            >
-              <View className="flex-row justify-between items-center">
-                <View>
-                  <Text className={`text-2xl font-bold ${colorScheme === "light" ? "text-black" : "text-green-500"}`}>
-                    {item.nome}
-                  </Text>
-                  <Text className={`${colorScheme === "light" ? "text-gray-600" : "text-gray-200"}`}>
-                    {item.endereco}
-                  </Text>
-                  <Text className={`text-sm mt-1 text-gray-400 ${colorScheme === "light" ? "text-gray-800" : "text-gray-100"}`}>
-                    Vagas: <Text className={`font-bold ${colorScheme === "light" ? "text-black" : "text-white"}`}>{info.totalVagas}</Text> | Vagas Disponíveis:<Text className={`font-bold ${colorScheme === "light" ? "text-black" : "text-white"}`}> {info.vagasDisponiveis} </Text> 
-                  </Text>
+        <FlatList
+          data={filteredPatios}
+          className={`mb-40 p-4 border-2 rounded-lg border-green-900 ${
+            colorScheme === "light" ? "bg-gray-50" : "bg-gray-800"
+          }`}
+          keyExtractor={(item) => item.id_patio.toString()}
+          renderItem={({ item }) => {
+            const info = getVagasInfo(item.id_patio);
+            return (
+              <TouchableOpacity
+                className={`p-4 mb-2 mt-2 rounded-lg border-2 ${
+                  colorScheme === "light"
+                    ? "bg-gray-100 border-green-600"
+                    : "bg-gray-800 border-green-400"
+                }`}
+                onPress={() =>
+                  router.push({
+                    pathname: "/Filial/[id_patio]",
+                    params: { id_patio: item.id_patio, nome: item.nome },
+                  })
+                }
+              >
+                <View className="flex-row justify-between items-center">
+                  <View>
+                    <Text
+                      className={`text-2xl font-bold ${
+                        colorScheme === "light"
+                          ? "text-black"
+                          : "text-green-500"
+                      }`}
+                    >
+                      {item.nome}
+                    </Text>
+                    <Text
+                      className={`${
+                        colorScheme === "light"
+                          ? "text-gray-600"
+                          : "text-gray-200"
+                      }`}
+                    >
+                      {item.endereco}
+                    </Text>
+                    <Text
+                      className={`text-sm mt-1 text-gray-400 ${
+                        colorScheme === "light"
+                          ? "text-gray-800"
+                          : "text-gray-100"
+                      }`}
+                    >
+                      Vagas:{" "}
+                      <Text
+                        className={`font-bold ${
+                          colorScheme === "light" ? "text-black" : "text-white"
+                        }`}
+                      >
+                        {info.totalVagas}
+                      </Text>{" "}
+                      | Vagas Disponíveis:
+                      <Text
+                        className={`font-bold ${
+                          colorScheme === "light" ? "text-black" : "text-white"
+                        }`}
+                      >
+                        {" "}
+                        {info.vagasDisponiveis}{" "}
+                      </Text>
+                    </Text>
+                  </View>
+                  <DeletePatioButton
+                    patio={item}
+                    onDelete={handleDeletePatio}
+                    colorScheme={colorScheme}
+                  />
                 </View>
-                <Ionicons name="business" size={28} color={colorScheme === "light" ? "#22c55e" : "#4ade80"} />
-              </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
+              </TouchableOpacity>
+            );
+          }}
+        />
       </View>
       <AddPatioButton
         onAdd={handleAddPatio}
         colorScheme={colorScheme}
         patios={allPatios}
-      />
-      <DeletePatioButton
-        patios={filteredPatios}
-        onDelete={handleDeletePatio}
-        colorScheme={colorScheme}
       />
     </View>
   );
