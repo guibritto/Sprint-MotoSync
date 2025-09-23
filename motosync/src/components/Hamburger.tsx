@@ -1,10 +1,23 @@
 import React, { useRef, useEffect } from "react";
-import { View, Text, Modal, TouchableOpacity, Pressable, Animated } from "react-native";
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  Pressable,
+  Animated,
+} from "react-native";
 import { useColorScheme } from "../hooks/useColorScheme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname } from "expo-router";
 
-export default function Hamburger({ visible, onClose }: { visible: boolean; onClose: () => void; }) {
+export default function Hamburger({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const pathname = usePathname();
@@ -91,6 +104,11 @@ export default function Hamburger({ visible, onClose }: { visible: boolean; onCl
           <TouchableOpacity onPress={() => handleNavigate("/Motos")}>
             <Text className="font-bold text-green-400 text-4xl mb-4">
               Motos
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleNavigate("/Cadastro")}>
+            <Text className="font-bold text-green-400 text-4xl mb-12">
+              Cadastro
             </Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
