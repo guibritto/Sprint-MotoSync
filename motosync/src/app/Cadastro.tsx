@@ -3,6 +3,7 @@ import { Text, View, TextInput, TouchableOpacity, Alert } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColorScheme } from "../hooks/useColorScheme";
+import patiosData from "../data/patiosMock.json";
 
 type Patio = {
   id_patio: number;
@@ -23,10 +24,25 @@ export default function Cadastro() {
   const [patios, setPatios] = useState<Patio[]>([]);
 
   useEffect(() => {
-    // Carrega patios do AsyncStorage
-    AsyncStorage.getItem("patios").then((data) => {
-      if (data) setPatios(JSON.parse(data));
-    });
+    async function carregarPatios() {
+      // Carrega do AsyncStorage
+      const storedPatios = await AsyncStorage.getItem("patios");
+      const patiosStorage = storedPatios ? JSON.parse(storedPatios) : [];
+      // Evita duplicidade com mock
+      const nomesStorage = patiosStorage.map((p: any) =>
+        p.nome.trim().toLowerCase()
+      );
+      const patiosMockSemDuplicados = patiosData.filter(
+        (p: any) => !nomesStorage.includes(p.nome.trim().toLowerCase())
+      );
+      const todosPatios = [...patiosMockSemDuplicados, ...patiosStorage];
+      setPatios(todosPatios);
+      // Se não houver seleção, define o primeiro como default
+      if (todosPatios.length > 0 && patio === "") {
+        setPatio(todosPatios[0].id_patio.toString());
+      }
+    }
+    carregarPatios();
   }, []);
 
   async function handleCadastro() {
@@ -49,12 +65,13 @@ export default function Cadastro() {
       return;
     }
 
+    const patioObj = patios.find((p) => p.id_patio.toString() === patio);
     const novoUsuario = {
       nome,
       email,
       senha,
       cargo,
-      patio: cargo === "Funcionario" ? patio : null,
+      patio: cargo === "Funcionario" ? patioObj?.nome : null,
     };
     // Salva usuário (exemplo: em AsyncStorage)
     const stored = await AsyncStorage.getItem("usuarios");
@@ -146,14 +163,17 @@ export default function Cadastro() {
             }`}
           >
             <Picker
-              placeholder="Selecione um pátio"
               selectedValue={patio}
               onValueChange={(itemValue) => setPatio(itemValue)}
               style={{ color: colorScheme === "light" ? "#000" : "#fff" }}
             >
               <Picker.Item label="Selecione um pátio" value="" />
               {patios.map((p) => (
-                <Picker.Item key={p.id_patio} label={p.nome} value={p.nome} />
+                <Picker.Item
+                  key={p.id_patio}
+                  label={p.nome}
+                  value={p.id_patio.toString()}
+                />
               ))}
             </Picker>
           </View>

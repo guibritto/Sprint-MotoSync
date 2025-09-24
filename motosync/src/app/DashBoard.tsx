@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import InfoMotoDashBoard from "../components/InfoMotoDashBoard"; // certifique-se do caminho correto
 import { MenuBar } from "../components/MenuBar";
 import Hamburger from "../components/Hamburger";
+import patiosData from "../data/patiosMock.json";
 
 // Tipos
 type Patio = {
@@ -42,11 +43,22 @@ export default function DashBoard() {
 
   useEffect(() => {
     async function carregarPatios() {
-      const patiosData = await AsyncStorage.getItem("patios");
-      const patios = patiosData ? JSON.parse(patiosData) : [];
-      setPatios(patios);
-      if (patios.length > 0 && patioSelecionado === null) {
-        setPatioSelecionado(patios[0].id_patio);
+      // Carrega do AsyncStorage
+      const patiosStorageRaw = await AsyncStorage.getItem("patios");
+      const patiosStorage = patiosStorageRaw
+        ? JSON.parse(patiosStorageRaw)
+        : [];
+      // Evita duplicidade com mock
+      const nomesStorage = patiosStorage.map((p: any) =>
+        p.nome.trim().toLowerCase()
+      );
+      const patiosMockSemDuplicados = patiosData.filter(
+        (p: any) => !nomesStorage.includes(p.nome.trim().toLowerCase())
+      );
+      const todosPatios = [...patiosMockSemDuplicados, ...patiosStorage];
+      setPatios(todosPatios);
+      if (todosPatios.length > 0 && patioSelecionado === null) {
+        setPatioSelecionado(todosPatios[0].id_patio);
       }
     }
     carregarPatios();
@@ -186,10 +198,12 @@ export default function DashBoard() {
             </View>
           ))}
         </View>
+        {/* Box das vagas agora é scrolável horizontal e vertical */}
         <View
           className={`border-2 rounded-xl border-green-400 mb-4 p-4 ml-5 mr-5 ${
             colorScheme === "light" ? "bg-white" : "bg-gray-800"
           }`}
+          style={{ maxHeight: 350 }} // ajuste a altura máxima conforme necessário
         >
           {/* Aviso se não houver motos nesse pátio */}
           {motosNoPatio.length === 0 && (
@@ -197,41 +211,58 @@ export default function DashBoard() {
               Não possui moto nesse pátio.
             </Text>
           )}
-          <View className="items-center">
+          <ScrollView
+            style={{ width: "100%" }}
+            contentContainerStyle={{ alignItems: "center" }}
+            showsVerticalScrollIndicator={true}
+          >
             {letrasOrdenadas.map((letra) => (
               <View key={letra} className="mb-4 w-full">
                 <Text className="text-center font-bold text-lg mb-1 text-green-700">
                   {letra}
                 </Text>
-                <View className="flex-row justify-center">
-                  {gruposVagas[letra].map((vaga) => {
-                    const status = getStatusVaga(vaga.codigo);
-                    const { border, text } = getBordaETextoStatus(status);
-                    return (
-                      <TouchableOpacity
-                        key={vaga.id_vaga}
-                        onPress={() => handleVagaPress(vaga)}
-                        activeOpacity={0.7}
-                      >
-                        <View
-                          className={`w-20 h-20 mx-2 mb-2 rounded-lg justify-center items-center border-2 ${border} ${
-                            colorScheme === "light" ? "bg-white" : "bg-gray-800"
-                          }`}
-                        >
-                          <Text className={`font-bold text-2xl ${text}`}>
-                            {vaga.codigo}
-                          </Text>
-                          <Text className={`text-xs mt-1 ${text}`}>
-                            {status}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                {/* Agrupa as vagas dessa letra em linhas de até 6 */}
+                {(() => {
+                  const vagasDaLetra = gruposVagas[letra];
+                  const linhas: Vaga[][] = [];
+                  for (let i = 0; i < vagasDaLetra.length; i += 6) {
+                    linhas.push(vagasDaLetra.slice(i, i + 6));
+                  }
+                  return linhas.map((linha, idx) => (
+                    <View
+                      key={idx}
+                      className="flex-row justify-center"
+                      style={idx < linhas.length - 1 ? {} : { marginBottom: 0 }}
+                    >
+                      {linha.map((vaga) => {
+                        const status = getStatusVaga(vaga.codigo);
+                        const { border, text } = getBordaETextoStatus(status);
+                        return (
+                          <TouchableOpacity
+                            key={vaga.id_vaga}
+                            onPress={() => handleVagaPress(vaga)}
+                            activeOpacity={0.7}
+                          >
+                            <View
+                              className={`w-10 h-10 mx-1 rounded-lg justify-center items-center border-2 ${border} ${
+                                colorScheme === "light"
+                                  ? "bg-white"
+                                  : "bg-gray-800"
+                              }`}
+                            >
+                              <Text className={`font-bold text-xl ${text}`}>
+                                {vaga.codigo}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  ));
+                })()}
               </View>
             ))}
-          </View>
+          </ScrollView>
         </View>
         <InfoMotoDashBoard
           visible={modalVisible}
