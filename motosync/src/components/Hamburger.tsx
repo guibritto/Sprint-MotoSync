@@ -109,7 +109,7 @@ export default function Hamburger({
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleNavigate("/Cadastro")}>
-            <Text className="font-bold text-green-400 text-4xl mt-8">
+            <Text className="font-bold text-green-400 text-4xl mt-8 mb-4">
               Cadastro
             </Text>
           </TouchableOpacity>
