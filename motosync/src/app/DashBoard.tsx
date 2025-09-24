@@ -54,10 +54,8 @@ export default function DashBoard() {
         setMotosNoPatio([]);
         return;
       }
-      // Carrega patio selecionado
-      const patioAtual = patios.find(
-        (p: Patio) => p.id_patio === patioSelecionado
-      );
+      const patioAtual =
+        patios.find((p: Patio) => p.id_patio === patioSelecionado) || null;
       setPatio(patioAtual);
 
       // Carrega vagas
@@ -97,12 +95,29 @@ export default function DashBoard() {
     return "Ocupada";
   }
 
-  function getCorStatus(status: string) {
-    if (status === "Disponível") return "bg-green-500";
-    if (status === "Ocupada") return "bg-red-500";
-    if (status === "Manutenção") return "bg-orange-400";
-    return "bg-gray-400";
+  // Função para definir cor da borda e texto conforme status
+  function getBordaETextoStatus(status: string) {
+    if (status === "Disponível")
+      return { border: "border-green-600", text: "text-green-600" };
+    if (status === "Ocupada")
+      return { border: "border-red-600", text: "text-red-600" };
+    if (status === "Manutenção")
+      return { border: "border-orange-400", text: "text-orange-400" };
+    return { border: "border-gray-400", text: "text-gray-400" };
   }
+
+  // Agrupa as vagas por letra inicial do código
+  function agruparVagasPorLetra(vagas: Vaga[]) {
+    const grupos: { [letra: string]: Vaga[] } = {};
+    vagas.forEach((vaga) => {
+      const letra = vaga.codigo.charAt(0).toUpperCase();
+      if (!grupos[letra]) grupos[letra] = [];
+      grupos[letra].push(vaga);
+    });
+    return grupos;
+  }
+  const gruposVagas = agruparVagasPorLetra(vagas);
+  const letrasOrdenadas = Object.keys(gruposVagas).sort();
 
   return (
     <ScrollView
@@ -120,7 +135,7 @@ export default function DashBoard() {
       >
         <Picker
           selectedValue={patioSelecionado}
-          onValueChange={(itemValue) => setPatioSelecionado(itemValue)}
+          onValueChange={(itemValue) => setPatioSelecionado(Number(itemValue))}
           style={{ color: colorScheme === "light" ? "#000" : "#fff" }}
         >
           {patios.map((p) => (
@@ -129,8 +144,7 @@ export default function DashBoard() {
         </Picker>
       </View>
 
-      {/* Nome do pátio centralizado */}
-      <Text className="text-3xl font-bold text-center mb-2 text-green-700">
+      <Text className="text-3xl font-bold text-center mb-2 mt-5 text-green-700">
         {patio?.nome || "Pátio"}
       </Text>
       <Text className="text-center mb-6 text-gray-500">{patio?.endereco}</Text>
@@ -151,40 +165,32 @@ export default function DashBoard() {
         ))}
       </View>
 
-      {/* Lista de motos no pátio */}
-      <View className="mb-6">
-        <Text className="text-lg font-bold mb-2 text-green-700">
-          Motos neste pátio:
-        </Text>
-        {motosNoPatio.length === 0 ? (
-          <Text className="text-gray-400">
-            Nenhuma moto cadastrada neste pátio.
-          </Text>
-        ) : (
-          motosNoPatio.map((moto) => (
-            <Text key={moto.id_moto} className="mb-1 text-base">
-              {moto.placa} - {moto.modelo} ({moto.status})
+      {/* Apenas os quadradinhos das vagas, agrupados por letra */}
+      <View className="items-center">
+        {letrasOrdenadas.map((letra) => (
+          <View key={letra} className="mb-4 w-full">
+            <Text className="text-center font-bold text-lg mb-1 text-green-700">
+              {letra}
             </Text>
-          ))
-        )}
-      </View>
-
-      {/* Layout das vagas */}
-      <View className="flex-row flex-wrap justify-center">
-        {vagas.map((vaga) => {
-          const status = getStatusVaga(vaga.codigo);
-          return (
-            <View
-              key={vaga.id_vaga}
-              className={`w-20 h-20 m-2 rounded-lg justify-center items-center ${getCorStatus(
-                status
-              )}`}
-            >
-              <Text className="text-white font-bold">{vaga.codigo}</Text>
-              <Text className="text-xs text-white">{status}</Text>
+            <View className="flex-row justify-center">
+              {gruposVagas[letra].map((vaga) => {
+                const status = getStatusVaga(vaga.codigo);
+                const { border, text } = getBordaETextoStatus(status);
+                return (
+                  <View
+                    key={vaga.id_vaga}
+                    className={`w-20 h-20 mx-2 mb-2 rounded-lg justify-center items-center border-2 ${border} bg-white`}
+                  >
+                    <Text className={`font-bold text-lg ${text}`}>
+                      {vaga.codigo}
+                    </Text>
+                    <Text className={`text-xs mt-1 ${text}`}>{status}</Text>
+                  </View>
+                );
+              })}
             </View>
-          );
-        })}
+          </View>
+        ))}
       </View>
     </ScrollView>
   );
