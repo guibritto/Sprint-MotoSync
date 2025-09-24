@@ -4,6 +4,8 @@ import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColorScheme } from "../hooks/useColorScheme";
 import patiosData from "../data/patiosMock.json";
+import { MenuBar } from "../components/MenuBar";
+import Hamburger from "../components/Hamburger";
 
 type Patio = {
   id_patio: number;
@@ -13,6 +15,7 @@ type Patio = {
 
 export default function Cadastro() {
   const colorScheme = useColorScheme();
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -87,109 +90,116 @@ export default function Cadastro() {
   }
 
   return (
-    <View
-      className={`flex-1 px-6 ${
-        colorScheme === "light" ? "bg-white" : "bg-black"
-      }`}
-    >
-      <Text className="text-4xl text-center font-bold mt-20 mb-12 text-green-400">
-        Cadastro de Funcionário
-      </Text>
+    <>
+      <MenuBar onMenuPress={() => setMenuVisible(true)} title="Cadastro" />
+      <Hamburger visible={menuVisible} onClose={() => setMenuVisible(false)} />
 
-      <Text className="mb-1 text-lg font-bold text-green-700">Nome</Text>
-      <TextInput
-        className={`border rounded-lg px-3 py-2 mb-4 ${
-          colorScheme === "light"
-            ? "border-green-700 text-black"
-            : "border-green-400 text-white"
-        }`}
-        placeholder="Digite o nome"
-        placeholderTextColor="#999"
-        value={nome}
-        onChangeText={setNome}
-      />
-
-      <Text className="mb-1 text-lg font-bold text-green-700">Email</Text>
-      <TextInput
-        className={`border rounded-lg px-3 py-2 mb-4 ${
-          colorScheme === "light"
-            ? "border-green-700 text-black"
-            : "border-green-400 text-white"
-        }`}
-        placeholder="Digite o email"
-        placeholderTextColor="#999"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <Text className="mb-1 text-lg font-bold text-green-700">Senha</Text>
-      <TextInput
-        className={`border rounded-lg px-3 py-2 mb-4 ${
-          colorScheme === "light"
-            ? "border-green-700 text-black"
-            : "border-green-400 text-white"
-        }`}
-        placeholder="Digite a senha"
-        placeholderTextColor="#999"
-        value={senha}
-        onChangeText={setSenha}
-        secureTextEntry
-      />
-
-      <Text className="mb-1 text-lg font-bold text-green-700">Cargo</Text>
       <View
-        className={`border rounded-lg mb-4 ${
-          colorScheme === "light" ? "border-green-700" : "border-green-400"
+        className={`flex-1 px-6 ${
+          colorScheme === "light" ? "bg-white" : "bg-black"
         }`}
       >
-        <Picker
-          selectedValue={cargo}
-          onValueChange={(itemValue) => setCargo(itemValue)}
-          style={{ color: colorScheme === "light" ? "#000" : "#fff" }}
-        >
-          <Picker.Item label="Funcionário" value="Funcionario" />
-          <Picker.Item label="Administrador" value="Administrador" />
-        </Picker>
-      </View>
-
-      {cargo === "Funcionario" && (
-        <>
-          <Text className="mb-1 text-lg font-bold text-green-700">Pátio</Text>
-          <View
-            className={`border rounded-lg mb-4 ${
-              colorScheme === "light" ? "border-green-700" : "border-green-400"
-            }`}
-          >
-            <Picker
-              selectedValue={patio}
-              onValueChange={(itemValue) => setPatio(itemValue)}
-              style={{ color: colorScheme === "light" ? "#000" : "#fff" }}
-            >
-              <Picker.Item label="Selecione um pátio" value="" />
-              {patios.map((p) => (
-                <Picker.Item
-                  key={p.id_patio}
-                  label={p.nome}
-                  value={p.id_patio.toString()}
-                />
-              ))}
-            </Picker>
-          </View>
-        </>
-      )}
-
-      <TouchableOpacity
-        className={`bg-green-500 rounded-lg py-3 mb-4 ${
-          colorScheme === "light" ? "shadow-md" : "shadow-lg"
-        }`}
-        onPress={handleCadastro}
-      >
-        <Text className="text-center text-white text-lg font-bold">
-          Cadastrar
+        <Text className="text-4xl text-center font-bold mt-20 mb-12 text-green-400">
+          Cadastro de Funcionário
         </Text>
-      </TouchableOpacity>
-    </View>
+
+        <Text className="mb-1 text-lg font-bold text-green-700">Nome</Text>
+        <TextInput
+          className={`border rounded-lg px-3 py-2 mb-4 ${
+            colorScheme === "light"
+              ? "border-green-700 text-black"
+              : "border-green-400 text-white"
+          }`}
+          placeholder="Digite o nome"
+          placeholderTextColor="#999"
+          value={nome}
+          onChangeText={setNome}
+        />
+
+        <Text className="mb-1 text-lg font-bold text-green-700">Email</Text>
+        <TextInput
+          className={`border rounded-lg px-3 py-2 mb-4 ${
+            colorScheme === "light"
+              ? "border-green-700 text-black"
+              : "border-green-400 text-white"
+          }`}
+          placeholder="Digite o email"
+          placeholderTextColor="#999"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <Text className="mb-1 text-lg font-bold text-green-700">Senha</Text>
+        <TextInput
+          className={`border rounded-lg px-3 py-2 mb-4 ${
+            colorScheme === "light"
+              ? "border-green-700 text-black"
+              : "border-green-400 text-white"
+          }`}
+          placeholder="Digite a senha"
+          placeholderTextColor="#999"
+          value={senha}
+          onChangeText={setSenha}
+          secureTextEntry
+        />
+
+        <Text className="mb-1 text-lg font-bold text-green-700">Cargo</Text>
+        <View
+          className={`border rounded-lg mb-4 ${
+            colorScheme === "light" ? "border-green-700" : "border-green-400"
+          }`}
+        >
+          <Picker
+            selectedValue={cargo}
+            onValueChange={(itemValue) => setCargo(itemValue)}
+            style={{ color: colorScheme === "light" ? "#000" : "#fff" }}
+          >
+            <Picker.Item label="Funcionário" value="Funcionario" />
+            <Picker.Item label="Administrador" value="Administrador" />
+          </Picker>
+        </View>
+
+        {cargo === "Funcionario" && (
+          <>
+            <Text className="mb-1 text-lg font-bold text-green-700">Pátio</Text>
+            <View
+              className={`border rounded-lg mb-4 ${
+                colorScheme === "light"
+                  ? "border-green-700"
+                  : "border-green-400"
+              }`}
+            >
+              <Picker
+                selectedValue={patio}
+                onValueChange={(itemValue) => setPatio(itemValue)}
+                style={{ color: colorScheme === "light" ? "#000" : "#fff" }}
+              >
+                <Picker.Item label="Selecione um pátio" value="" />
+                {patios.map((p) => (
+                  <Picker.Item
+                    key={p.id_patio}
+                    label={p.nome}
+                    value={p.id_patio.toString()}
+                  />
+                ))}
+              </Picker>
+            </View>
+          </>
+        )}
+
+        <TouchableOpacity
+          className={`bg-green-500 rounded-lg py-3 mb-4 ${
+            colorScheme === "light" ? "shadow-md" : "shadow-lg"
+          }`}
+          onPress={handleCadastro}
+        >
+          <Text className="text-center text-white text-lg font-bold">
+            Cadastrar
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </>
   );
 }
