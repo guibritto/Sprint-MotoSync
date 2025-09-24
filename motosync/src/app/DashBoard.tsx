@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useColorScheme } from "../hooks/useColorScheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import InfoMotoDashBoard from "../components/InfoMotoDashBoard"; // certifique-se do caminho correto
 
 // Tipos
 type Patio = {
@@ -32,6 +33,9 @@ export default function DashBoard() {
   const [vagas, setVagas] = useState<Vaga[]>([]);
   const [motos, setMotos] = useState<Moto[]>([]);
   const [motosNoPatio, setMotosNoPatio] = useState<Moto[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [vagaSelecionada, setVagaSelecionada] = useState<Vaga | null>(null);
+  const [motoDaVaga, setMotoDaVaga] = useState<Moto | null>(null);
 
   useEffect(() => {
     async function carregarPatios() {
@@ -119,12 +123,20 @@ export default function DashBoard() {
   const gruposVagas = agruparVagasPorLetra(vagas);
   const letrasOrdenadas = Object.keys(gruposVagas).sort();
 
+  // Função para abrir modal ao clicar na vaga
+  function handleVagaPress(vaga: Vaga) {
+    setVagaSelecionada(vaga);
+    const moto = motosNoPatio.find((m) => m.vaga === vaga.codigo) || null;
+    setMotoDaVaga(moto);
+    setModalVisible(true);
+  }
+
   return (
     <ScrollView
       className={`flex-1 ${colorScheme === "light" ? "bg-white" : "bg-black"}`}
       contentContainerStyle={{ padding: 20 }}
     >
-      <Text className="text-lg font-bold mb-2 text-green-700 text-center">
+      <Text className="text-lg font-bold mb-2 text-green-700 mt-10 text-center">
         Selecione o Pátio
       </Text>
       <View
@@ -147,6 +159,7 @@ export default function DashBoard() {
         {patio?.nome || "Pátio"}
       </Text>
       <Text className="text-center mb-6 text-gray-500">{patio?.endereco}</Text>
+
       <View className="flex-row justify-center mb-6">
         {legenda.map((item) => (
           <View key={item.texto} className="flex-row items-center mr-4">
@@ -161,32 +174,59 @@ export default function DashBoard() {
           </View>
         ))}
       </View>
-      <View className="items-center">
-        {letrasOrdenadas.map((letra) => (
-          <View key={letra} className="mb-4 w-full">
-            <Text className="text-center font-bold text-lg mb-1 text-green-700">
-              {letra}
-            </Text>
-            <View className="flex-row justify-center">
-              {gruposVagas[letra].map((vaga) => {
-                const status = getStatusVaga(vaga.codigo);
-                const { border, text } = getBordaETextoStatus(status);
-                return (
-                  <View
-                    key={vaga.id_vaga}
-                    className={`w-20 h-20 mx-2 mb-2 rounded-lg justify-center items-center border-2 ${border} colorscheme === "light" ? "bg-white" : "bg-gray-800"}`}
-                  >
-                    <Text className={`font-bold text-2xl ${text}`}>
-                      {vaga.codigo}
-                    </Text>
-                    <Text className={`text-xs mt-1 ${text}`}>{status}</Text>
-                  </View>
-                );
-              })}
+      <View
+        className={`border-2 rounded-xl border-green-400 mb-4 p-4 ml-5 mr-5 ${
+          colorScheme === "light" ? "bg-white" : "bg-gray-800"
+        }`}
+      >
+        {/* Aviso se não houver motos nesse pátio */}
+        {motosNoPatio.length === 0 && (
+          <Text className="text-center text-gray-300 font-bold text-lg">
+            Não possui moto nesse pátio.
+          </Text>
+        )}
+        <View className="items-center">
+          {letrasOrdenadas.map((letra) => (
+            <View key={letra} className="mb-4 w-full">
+              <Text className="text-center font-bold text-lg mb-1 text-green-700">
+                {letra}
+              </Text>
+              <View className="flex-row justify-center">
+                {gruposVagas[letra].map((vaga) => {
+                  const status = getStatusVaga(vaga.codigo);
+                  const { border, text } = getBordaETextoStatus(status);
+                  return (
+                    <TouchableOpacity
+                      key={vaga.id_vaga}
+                      onPress={() => handleVagaPress(vaga)}
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        className={`w-20 h-20 mx-2 mb-2 rounded-lg justify-center items-center border-2 ${border} ${
+                          colorScheme === "light" ? "bg-white" : "bg-gray-800"
+                        }`}
+                      >
+                        <Text className={`font-bold text-2xl ${text}`}>
+                          {vaga.codigo}
+                        </Text>
+                        <Text className={`text-xs mt-1 ${text}`}>{status}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-          </View>
-        ))}
+          ))}
+        </View>
       </View>
+      <InfoMotoDashBoard
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        vaga={vagaSelecionada}
+        moto={motoDaVaga}
+        nomePatio={patio?.nome || ""}
+        colorScheme={colorScheme}
+      />
     </ScrollView>
   );
 }
