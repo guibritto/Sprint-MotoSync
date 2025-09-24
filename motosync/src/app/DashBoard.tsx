@@ -84,7 +84,7 @@ export default function DashBoard() {
   const legenda = [
     { cor: "bg-green-500", texto: "Disponível" }, // vaga vazia
     { cor: "bg-red-500", texto: "Ocupada" }, // vaga com moto
-    { cor: "bg-orange-400", texto: "Manutenção" }, // moto em manutenção
+    { cor: "bg-orange-400", texto: "Moto em Manutenção" }, // moto em manutenção
   ];
 
   // Função para pegar status da vaga
@@ -124,7 +124,6 @@ export default function DashBoard() {
       className={`flex-1 ${colorScheme === "light" ? "bg-white" : "bg-black"}`}
       contentContainerStyle={{ padding: 20 }}
     >
-      {/* Seleção de pátio */}
       <Text className="text-lg font-bold mb-2 text-green-700 text-center">
         Selecione o Pátio
       </Text>
@@ -148,8 +147,6 @@ export default function DashBoard() {
         {patio?.nome || "Pátio"}
       </Text>
       <Text className="text-center mb-6 text-gray-500">{patio?.endereco}</Text>
-
-      {/* Legenda */}
       <View className="flex-row justify-center mb-6">
         {legenda.map((item) => (
           <View key={item.texto} className="flex-row items-center mr-4">
@@ -164,8 +161,6 @@ export default function DashBoard() {
           </View>
         ))}
       </View>
-
-      {/* Apenas os quadradinhos das vagas, agrupados por letra */}
       <View className="items-center">
         {letrasOrdenadas.map((letra) => (
           <View key={letra} className="mb-4 w-full">
@@ -179,9 +174,9 @@ export default function DashBoard() {
                 return (
                   <View
                     key={vaga.id_vaga}
-                    className={`w-20 h-20 mx-2 mb-2 rounded-lg justify-center items-center border-2 ${border} bg-white`}
+                    className={`w-20 h-20 mx-2 mb-2 rounded-lg justify-center items-center border-2 ${border} colorscheme === "light" ? "bg-white" : "bg-gray-800"}`}
                   >
-                    <Text className={`font-bold text-lg ${text}`}>
+                    <Text className={`font-bold text-2xl ${text}`}>
                       {vaga.codigo}
                     </Text>
                     <Text className={`text-xs mt-1 ${text}`}>{status}</Text>
