@@ -5,7 +5,6 @@ import patiosData from "../data/patiosMock.json";
 import vagasData from "../data/vagasMock.json";
 import motosData from "../data/motosMock.json";
 import { useColorScheme } from "../hooks/useColorScheme";
-import { Ionicons } from "@expo/vector-icons";
 import Hamburger from "../components/Hamburger";
 import { MenuBar } from "../components/MenuBar";
 import { AddPatioButton } from "../components/AddPatioButton";
