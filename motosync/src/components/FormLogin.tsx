@@ -4,6 +4,7 @@ import { Input } from "./InputLogin";
 import { useState } from "react";
 import ButtonLogin from "./ButtonLogin";
 import { useRouter } from "expo-router";
+import api from "../services/api"; // ajuste o caminho se necessário
 
 export function FormLogin() {
   const colorScheme = useColorScheme();
@@ -16,12 +17,22 @@ export function FormLogin() {
       Alert.alert("Preencha todos os campos");
       return;
     }
-    // Exemplo de lógica de login simulada
-    if (email === "user123@mottu.com" && password === "12345@") {
-      router.push("/Home");
-    } else {
-      Alert.alert("E-mail ou senha inválidos!");
-    }
+
+    // Chamada real para a API
+    api.post("/login", { email, password })
+      .then((response) => {
+        // Supondo que a API retorna sucesso no login
+        if (response.data.success) {
+          router.push("/Home");
+        } else {
+          Alert.alert("E-mail ou senha inválidos!");
+          console.log(response.data); // Log para depuração
+        }
+      })
+      .catch((error) => {
+        Alert.alert("Erro ao conectar com o servidor!");
+        console.log(error); // Adicione para ver detalhes do erro
+      });
   }
 
   return (
