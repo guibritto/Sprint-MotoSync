@@ -4,7 +4,7 @@ import { Input } from "./InputLogin";
 import { useState } from "react";
 import ButtonLogin from "./ButtonLogin";
 import { useRouter } from "expo-router";
-import api from "../services/api"; // ajuste o caminho se necessário
+import api from "../services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function FormLogin() {
@@ -18,6 +18,7 @@ export function FormLogin() {
       Alert.alert("Preencha todos os campos");
       return;
     }
+
     try {
       const response = await api.post("/api/auth/login", { email, password });
       const { cargo, idUsuario, email: userEmail } = response.data;
@@ -27,7 +28,7 @@ export function FormLogin() {
         router.push("/Home");
       } else if (cargo === "OPERADOR_PATIO") {
         await AsyncStorage.setItem("user", JSON.stringify(response.data));
-        router.push("/DashBoard");
+        router.push("/DashBoard_Operador");
       } else {
         Alert.alert("Cargo não autorizado!");
       }
