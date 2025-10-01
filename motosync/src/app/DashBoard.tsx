@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useColorScheme } from "../hooks/useColorScheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import InfoMotoDashBoard from "../components/InfoMotoDashBoard"; // certifique-se do caminho correto
+import InfoMotoDashBoard from "../components/InfoMotoDashBoard";
 import { MenuBar } from "../components/MenuBar";
 import Hamburger from "../components/Hamburger";
 import patiosData from "../data/patiosMock.json";
@@ -43,12 +43,10 @@ export default function DashBoard() {
 
   useEffect(() => {
     async function carregarPatios() {
-      // Carrega do AsyncStorage
       const patiosStorageRaw = await AsyncStorage.getItem("patios");
       const patiosStorage = patiosStorageRaw
         ? JSON.parse(patiosStorageRaw)
         : [];
-      // Evita duplicidade com mock
       const nomesStorage = patiosStorage.map((p: any) =>
         p.nome.trim().toLowerCase()
       );
@@ -77,7 +75,6 @@ export default function DashBoard() {
         patios.find((p: Patio) => p.id_patio === patioSelecionado) || null;
       setPatio(patioAtual);
 
-      // Carrega vagas
       const vagasData = await AsyncStorage.getItem("vagas");
       const vagasAll = vagasData ? JSON.parse(vagasData) : [];
       const vagasPatio = vagasAll.filter(
@@ -85,12 +82,10 @@ export default function DashBoard() {
       );
       setVagas(vagasPatio);
 
-      // Carrega motos
       const motosData = await AsyncStorage.getItem("motos");
       const motosAll = motosData ? JSON.parse(motosData) : [];
       setMotos(motosAll);
 
-      // Motos no pátio
       const motosPatio = motosAll.filter(
         (m: Moto) => m.patio === patioAtual?.nome
       );
@@ -99,14 +94,12 @@ export default function DashBoard() {
     carregarDados();
   }, [patioSelecionado, patios]);
 
-  // Legenda de status
   const legenda = [
-    { cor: "bg-green-500", texto: "Disponível" }, // vaga vazia
-    { cor: "bg-red-500", texto: "Ocupada" }, // vaga com moto
-    { cor: "bg-orange-400", texto: "Moto em Manutenção" }, // moto em manutenção
+    { cor: "bg-green-500", texto: "Disponível" },
+    { cor: "bg-red-500", texto: "Ocupada" },
+    { cor: "bg-orange-400", texto: "Moto em Manutenção" },
   ];
 
-  // Função para pegar status da vaga
   function getStatusVaga(codigo: string) {
     const moto = motosNoPatio.find((m) => m.vaga === codigo);
     if (!moto) return "Disponível";
@@ -114,7 +107,6 @@ export default function DashBoard() {
     return "Ocupada";
   }
 
-  // Função para definir cor da borda e texto conforme status
   function getBordaETextoStatus(status: string) {
     if (status === "Disponível")
       return { border: "border-green-600", text: "text-green-600" };
@@ -125,7 +117,6 @@ export default function DashBoard() {
     return { border: "border-gray-400", text: "text-gray-400" };
   }
 
-  // Agrupa as vagas por letra inicial do código
   function agruparVagasPorLetra(vagas: Vaga[]) {
     const grupos: { [letra: string]: Vaga[] } = {};
     vagas.forEach((vaga) => {
@@ -138,7 +129,6 @@ export default function DashBoard() {
   const gruposVagas = agruparVagasPorLetra(vagas);
   const letrasOrdenadas = Object.keys(gruposVagas).sort();
 
-  // Função para abrir modal ao clicar na vaga
   function handleVagaPress(vaga: Vaga) {
     setVagaSelecionada(vaga);
     const moto = motosNoPatio.find((m) => m.vaga === vaga.codigo) || null;
@@ -198,14 +188,12 @@ export default function DashBoard() {
             </View>
           ))}
         </View>
-        {/* Box das vagas agora é scrolável horizontal e vertical */}
         <View
           className={`border-2 rounded-xl border-green-400 mb-4 p-4 ml-5 mr-5 ${
             colorScheme === "light" ? "bg-white" : "bg-gray-800"
           }`}
-          style={{ maxHeight: 350 }} // ajuste a altura máxima conforme necessário
+          style={{ maxHeight: 350 }}
         >
-          {/* Aviso se não houver motos nesse pátio */}
           {motosNoPatio.length === 0 && (
             <Text className="text-center text-gray-300 font-bold text-lg">
               Não possui moto nesse pátio.
@@ -221,7 +209,6 @@ export default function DashBoard() {
                 <Text className="text-center font-bold text-lg mb-1 text-green-700">
                   {letra}
                 </Text>
-                {/* Agrupa as vagas dessa letra em linhas de até 6 */}
                 {(() => {
                   const vagasDaLetra = gruposVagas[letra];
                   const linhas: Vaga[][] = [];
