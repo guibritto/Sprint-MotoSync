@@ -1,5 +1,4 @@
 import axios, { AxiosInstance } from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const api: AxiosInstance = axios.create({
   baseURL: "https://motosync.onrender.com",
@@ -9,16 +8,13 @@ const api: AxiosInstance = axios.create({
   },
 });
 
-// Interceptor para incluir token JWT (agora assíncrono)
-api.interceptors.request.use(
-  async (config) => {
-    const token = await AsyncStorage.getItem("token");
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Interceptor para incluir token JWT
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export default api;
