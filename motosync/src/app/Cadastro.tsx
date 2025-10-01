@@ -20,8 +20,8 @@ export default function Cadastro() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [cargo, setCargo] = useState<"Administrador" | "Funcionario">(
-    "Funcionario"
+  const [cargo, setCargo] = useState<"Administrador" | "Operador_patio">(
+    "Operador_patio"
   );
   const [patio, setPatio] = useState<string>("");
   const [patios, setPatios] = useState<Patio[]>([]);
@@ -50,7 +50,7 @@ export default function Cadastro() {
 
   async function handleCadastro() {
     // Validação dos campos obrigatórios
-    if (!nome || !email || !senha || (cargo === "Funcionario" && !patio)) {
+    if (!nome || !email || !senha || (cargo === "Operador_patio" && !patio)) {
       Alert.alert("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -74,7 +74,7 @@ export default function Cadastro() {
       email,
       senha,
       cargo,
-      patio: cargo === "Funcionario" ? patioObj?.nome : null,
+      patio: cargo === "Operador_patio" ? patioObj?.nome : null,
     };
     // Salva usuário (exemplo: em AsyncStorage)
     const stored = await AsyncStorage.getItem("usuarios");
@@ -85,7 +85,7 @@ export default function Cadastro() {
     setNome("");
     setEmail("");
     setSenha("");
-    setCargo("Funcionario");
+    setCargo("Operador_patio");
     setPatio("");
   }
 
@@ -156,12 +156,12 @@ export default function Cadastro() {
             onValueChange={(itemValue) => setCargo(itemValue)}
             style={{ color: colorScheme === "light" ? "#000" : "#fff" }}
           >
-            <Picker.Item label="Funcionário" value="Funcionario" />
+            <Picker.Item label="Funcionário" value="Operador_patio" />
             <Picker.Item label="Administrador" value="Administrador" />
           </Picker>
         </View>
 
-        {cargo === "Funcionario" && (
+        {cargo === "Operador_patio" && (
           <>
             <Text className="mb-1 text-lg font-bold text-green-700">Pátio</Text>
             <View

@@ -28,7 +28,7 @@ export function FormLogin() {
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
-      console.log("Login bem-sucedido:", data); // <-- Adicionado
+      console.log("Login bem-sucedido:", data);
       if (data.cargo === "ADMIN") {
         AsyncStorage.setItem("user", JSON.stringify(data));
         router.push("/Home");
@@ -39,9 +39,16 @@ export function FormLogin() {
         Alert.alert("Cargo não autorizado!");
       }
     },
-    onError: (error) => {
-      console.log("Erro no login:", error); // <-- Adicionado
-      Alert.alert("Erro ao conectar com o servidor!");
+    onError: (error: any) => {
+      console.log("Erro no login:", error);
+      if (error?.message === "Network Error" || error?.code === "ERR_NETWORK") {
+        Alert.alert(
+          "Servidor iniciando",
+          "O servidor está acordando. Aguarde alguns segundos e tente novamente."
+        );
+      } else {
+        Alert.alert("Erro ao conectar com o servidor!");
+      }
     },
   });
 
