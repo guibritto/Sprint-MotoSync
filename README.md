@@ -15,6 +15,8 @@ src/
     Motos.tsx
     Participantes.tsx
     index.tsx
+    DashBoard.tsx
+    DashBoard_Operador.tsx
     Filial/
       [id_patio].tsx
       _layout.tsx
@@ -82,7 +84,22 @@ src/
   - Cadastro de novas motos (com validação em todos os campos).
   - Modal para detalhes e edição.
 
-### 4. `Filial/[id_patio].tsx`
+### 4. `DashBoard.tsx`
+
+- **Função:** Exibir o mapa do pátio com opção de escolha do pátio.
+- **Funcionalidades:**
+  - Lista as vagas do pátio selecionado, permitindo visualizar as vagas ocupadas, disponíveis ou com ocorrência.
+  - Permite selecionar o pátio que terá seu mapa settado para visualizar.
+  - Ao clicar na vaga você terá informações dela.
+
+### 5. `DashBoard_Operador.tsx`
+
+- **Função:** Exibir o mapa do pátio daquele operador.
+- **Funcionalidades:**
+  - Lista as vagas do pátio que o operador trabalha.
+  - Ao clicar na vaga você terá informações dela.
+
+### 6. `Filial/[id_patio].tsx`
 
 - **Função:** Exibe as vagas de um pátio específico.
 - **Funcionalidades:**
@@ -92,7 +109,7 @@ src/
   - Exclusão de vagas (somente se a vaga não possui motos alocadas).
   - Atualização automática ao adicionar/excluir vagas ou motos.
 
-### 5. `Participantes.tsx`
+### 7. `Participantes.tsx`
 
 - **Função:** Exibe os participantes do projeto.
 - **Funcionalidades:**
@@ -140,6 +157,13 @@ src/
 
 - Menu lateral animado.
 - Navegação entre páginas principais e logout.
+- Botão de LogOut.
+
+### - `Hamburger_Operador.tsx`
+
+- Menu lateral animado.
+- Navegação entre páginas limitada ao acesso do Operador do Pátio.
+- Botão de LogOut
 
 ### - `InputLogin.tsx`
 
@@ -279,3 +303,4 @@ Desenvolvido por:
 - Vinicius Banciela -RM558117
 
 ---
+
