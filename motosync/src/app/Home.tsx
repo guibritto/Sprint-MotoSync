@@ -45,16 +45,22 @@ export default function Home() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Fetch patios
+  // Estados para paginação
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10); // ajuste conforme necessário
+
+  // Fetch patios com paginação
   const {
     data: patiosData,
     isLoading: patiosLoading,
     error: patiosError,
   } = useQuery({
-    queryKey: ["patios"],
+    queryKey: ["patios", page, pageSize, search],
     queryFn: async () => {
-      const res = await api.get("/api/patios");
-      console.log("Patios da API:", res.data);
+      const res = await api.get("/api/patios", {
+        params: { page, size: pageSize, search },
+      });
+      // Espera resposta: { content: [], totalPages, ... }
       return res.data;
     },
   });
@@ -87,11 +93,9 @@ export default function Home() {
     },
   });
 
-  // Filtragem de patios
-  const filteredPatios = Array.isArray(patiosData)
-    ? patiosData.filter((patio: Patio) =>
-        patio.nome.toLowerCase().includes(search.toLowerCase())
-      )
+  // Dados paginados
+  const filteredPatios = Array.isArray(patiosData?.content)
+    ? patiosData.content
     : [];
 
   // Adicionar patio
@@ -135,7 +139,12 @@ export default function Home() {
         totalSessoes: 0,
         vagasDisponiveis: 0,
       };
-    const vagas = vagasData.filter((v: Vaga) => v.id_patio === id_patio);
+    const vagasArray = Array.isArray(vagasData?.content)
+      ? vagasData.content
+      : Array.isArray(vagasData)
+      ? vagasData
+      : [];
+    const vagas = vagasArray.filter((v: Vaga) => v.id_patio === id_patio);
     const sessoes = [...new Set(vagas.map((v: Vaga) => v.codigo[0]))];
     const patioNome = patiosData.find(
       (p: Patio) => p.id_patio === id_patio
@@ -216,7 +225,9 @@ export default function Home() {
           className={`mb-40 p-4 border-2 rounded-lg border-green-900 ${
             colorScheme === "light" ? "bg-gray-50" : "bg-gray-800"
           }`}
-          keyExtractor={(item) => item.id_patio.toString()}
+          keyExtractor={(item) =>
+            item?.id_patio ? item.id_patio.toString() : Math.random().toString()
+          }
           renderItem={({ item }) => {
             const info = getVagasInfo(item.id_patio);
             return (
@@ -288,6 +299,33 @@ export default function Home() {
               </TouchableOpacity>
             );
           }}
+          ListFooterComponent={
+            patiosData?.totalPages > 1 ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  marginTop: 16,
+                }}
+              >
+                <TouchableOpacity
+                  disabled={page === 0}
+                  onPress={() => setPage(page - 1)}
+                >
+                  <Text>Anterior</Text>
+                </TouchableOpacity>
+                <Text>
+                  Página {page + 1} de {patiosData.totalPages}
+                </Text>
+                <TouchableOpacity
+                  disabled={page + 1 >= patiosData.totalPages}
+                  onPress={() => setPage(page + 1)}
+                >
+                  <Text>Próxima</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null
+          }
         />
       </View>
       <AddPatioButton
