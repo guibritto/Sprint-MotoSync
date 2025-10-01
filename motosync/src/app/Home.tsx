@@ -88,7 +88,7 @@ export default function Home() {
   });
 
   // Filtragem de patios
-  const filteredPatios = patiosData
+  const filteredPatios = Array.isArray(patiosData)
     ? patiosData.filter((patio: Patio) =>
         patio.nome.toLowerCase().includes(search.toLowerCase())
       )
