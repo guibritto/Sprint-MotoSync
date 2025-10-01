@@ -257,7 +257,10 @@ export default function Home() {
                 onPress={() =>
                   router.push({
                     pathname: "/Filial/[id_patio]",
-                    params: { id_patio: item.id_patio, nome: item.nome },
+                    params: {
+                      id_patio: item.id || item.patioId,
+                      nome: item.nome,
+                    },
                   })
                 }
               >

@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import vagasData from "../../data/vagasMock.json";
-import motosData from "../../data/motosMock.json";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import api from "../../services/api";
 import { useColorScheme } from "../../hooks/useColorScheme";
 import { MenuBar } from "../../components/MenuBar";
 import { useState, useEffect } from "react";
@@ -14,7 +14,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SearchVaga } from "../../components/SearchVaga";
 
 export default function Filial() {
-
   type Vaga = {
     id_vaga: number;
     codigo: string;
@@ -38,55 +37,62 @@ export default function Filial() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedVaga, setSelectedVaga] = useState<Vaga | null>(null);
   const [selectedMoto, setSelectedMoto] = useState<Moto | null>(null);
-  const [vagas, setVagas] = useState<Vaga[]>([]);
   const [searchVaga, setSearchVaga] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState<"todas" | "ocupada" | "disponivel">("todas");
-  const [motos, setMotos] = useState<Moto[]>([]);
+  const [statusFiltro, setStatusFiltro] = useState<
+    "todas" | "ocupada" | "disponivel"
+  >("todas");
 
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  // Carrega vagas do AsyncStorage + mock, sem duplicar códigos
- useEffect(() => {
-  async function carregarVagas() {
-    try {
-      const stored = await AsyncStorage.getItem("vagas");
-      let vagasStorage = stored ? JSON.parse(stored) : [];
+  // Busca vagas da API
+  console.log("id_patio recebido:", id_patio);
+  const {
+    data: vagasData,
+    isLoading: vagasLoading,
+    error: vagasError,
+  } = useQuery({
+    queryKey: ["vagas", id_patio],
+    queryFn: async () => {
+      const res = await api.get("/api/vagas");
+      console.log("Resposta da API /api/vagas:", res.data);
+      // Se a API retornar { content: [...] }
+      const allVagas = Array.isArray(res.data?.content)
+        ? res.data.content
+        : res.data;
+      const patioIdParam = Array.isArray(id_patio) ? id_patio[0] : id_patio;
+      const vagasFiltradas = allVagas.filter((vaga: any) => {
+        const match = vaga.patioId === patioIdParam;
+        if (match) console.log("Vaga encontrada:", vaga);
+        return match;
+      });
+      return vagasFiltradas;
+    },
+  });
 
-      if (vagasStorage.length === 0) {
-        // Primeiro acesso: salva todos os mocks
-        await AsyncStorage.setItem("vagas", JSON.stringify(vagasData));
-        vagasStorage = vagasData;
-      }
-
-      // Filtra apenas vagas do pátio atual
-      const vagasFilialStorage = vagasStorage.filter(
-        (vaga: any) => Number(vaga.id_patio) === Number(id_patio)
-      );
-
-      setVagas(vagasFilialStorage);
-    } catch (err) {
-      console.error("Erro ao carregar vagas:", err);
-      setVagas([]);
-    }
-  }
-
-  carregarVagas();
-}, [id_patio]);
-
-
-  useEffect(() => {
-    async function carregarMotos() {
-      const stored = await AsyncStorage.getItem("motos");
-      const motosStorage = stored ? JSON.parse(stored) : [];
-      setMotos([...motosData, ...motosStorage]);
-    }
-    carregarMotos();
-  }, []);
+  // Busca motos da API
+  const {
+    data: motosData,
+    isLoading: motosLoading,
+    error: motosError,
+  } = useQuery({
+    queryKey: ["motos"],
+    queryFn: async () => {
+      const res = await api.get("/api/motos");
+      return Array.isArray(res.data?.content) ? res.data.content : res.data;
+    },
+  });
 
   // Função para checar status da vaga
   function getVagaStatus(vagaCodigo: string) {
-    const moto = motos.find(
-      (m) =>
+    if (!motosData) return "disponivel";
+    const motosArray = Array.isArray(motosData?.content)
+      ? motosData.content
+      : Array.isArray(motosData)
+      ? motosData
+      : [];
+    const moto = motosArray.find(
+      (m: Moto) =>
         m.vaga === vagaCodigo &&
         m.patio === nomeFilial &&
         (m.status === "Disponível" || m.status === "Manutenção")
@@ -94,51 +100,66 @@ export default function Filial() {
     return moto ? "ocupada" : "disponivel";
   }
 
-  // Função para adicionar nova vaga na filial
-  function handleAddVaga(novaVaga: any) {
+  // Adiciona vaga via API
+  async function handleAddVaga(novaVaga: any) {
     if (novaVaga.id_patio == id_patio || !novaVaga.id_patio) {
-      setVagas((prev) => [...prev, novaVaga]);
+      await api.post("/api/vagas", novaVaga);
+      // Invalida query para atualizar lista
+      // @ts-ignore
+      if (window.queryClient)
+        window.queryClient.invalidateQueries(["vagas", id_patio]);
     }
   }
 
-  // Função para deletar vaga (remove do AsyncStorage e do estado local)
+  // Deleta vaga via API
   async function handleDeleteVaga(id_vaga: number) {
-    const stored = await AsyncStorage.getItem("vagas");
-    const vagasStorage = stored ? JSON.parse(stored) : [];
-    const novasVagas = vagasStorage.filter((v: any) => v.id_vaga !== id_vaga);
-    await AsyncStorage.setItem("vagas", JSON.stringify(novasVagas));
-    setVagas((prev) => prev.filter((v) => v.id_vaga !== id_vaga));
+    await api.delete(`/api/vagas/${id_vaga}`);
+    // Invalida query para atualizar lista
+    // @ts-ignore
+    if (window.queryClient)
+      window.queryClient.invalidateQueries(["vagas", id_patio]);
     setModalVisible(false);
     setSelectedVaga(null);
     setSelectedMoto(null);
   }
 
-  const vagasFiltradas = vagas
-    .filter((vaga) => {
-      const codigoMatch = vaga.codigo.toUpperCase().includes(searchVaga.toUpperCase());
-      const status = getVagaStatus(vaga.codigo);
-      const statusMatch = statusFiltro === "todas" || status === statusFiltro;
-      return codigoMatch && statusMatch;
-    })
+  const vagasFiltradas = vagasData
+    .filter(
+      (vaga) =>
+        vaga.identificacao.toUpperCase().includes(searchVaga.toUpperCase()) &&
+        (statusFiltro === "todas" ||
+          (statusFiltro === "ocupada" && vaga.status === "OCUPADA") ||
+          (statusFiltro === "disponivel" && vaga.status === "LIVRE"))
+    )
     .sort((a, b) => {
+      if (!a.identificacao || !b.identificacao) return 0;
       // Extrai letra e número
-      const [letraA, ...numA] = a.codigo.toUpperCase();
-      const [letraB, ...numB] = b.codigo.toUpperCase();
+      const [letraA, ...numA] = a.identificacao.toUpperCase();
+      const [letraB, ...numB] = b.identificacao.toUpperCase();
       if (letraA < letraB) return -1;
       if (letraA > letraB) return 1;
       // Se letras iguais, compara número (com zero à esquerda)
-      return parseInt(numA.join("").padStart(2, "0")) - parseInt(numB.join("").padStart(2, "0"));
+      return (
+        parseInt(numA.join("").padStart(2, "0")) -
+        parseInt(numB.join("").padStart(2, "0"))
+      );
     });
 
   return (
-    <View className={`flex-1 ${colorScheme === "light" ? "bg-white" : "bg-black"}`}>
+    <View
+      className={`flex-1 ${colorScheme === "light" ? "bg-white" : "bg-black"}`}
+    >
       <MenuBar onMenuPress={() => setMenuVisible(true)} title={nomeFilial} />
       <Hamburger visible={menuVisible} onClose={() => setMenuVisible(false)} />
       <TouchableOpacity
         onPress={() => router.back()}
         className="flex-row items-center mt-4 mb-3"
       >
-        <Ionicons name="arrow-back" size={28} color={colorScheme === "light" ? "#222" : "#58cc3b"} />
+        <Ionicons
+          name="arrow-back"
+          size={28}
+          color={colorScheme === "light" ? "#222" : "#58cc3b"}
+        />
       </TouchableOpacity>
       <SearchVaga
         value={searchVaga}
@@ -148,49 +169,69 @@ export default function Filial() {
         colorScheme={colorScheme}
       />
       <View className=" px-1 mb-72">
-      <FlatList
-        className={`mb-40 border-2 rounded-lg border-green-400 ${colorScheme === "light" ? "bg-gray-100" : "bg-gray-900"}`}
-        data={vagasFiltradas}
-        keyExtractor={(item) => item.id_vaga.toString()}
-        numColumns={2}
-        contentContainerStyle={{ paddingHorizontal: 8 }}
-        ListEmptyComponent={
-          <Text className="text-center text-gray-400 mt-8">Nenhuma vaga nesta filial.</Text>
-        }
-        renderItem={({ item }) => {
-          const status = getVagaStatus(item.codigo);
-          let borderColor = status === "ocupada" ? "border-red-500" : "border-green-500";
-          let textColor = status === "ocupada"
-            ? "text-red-500"
-            : colorScheme === "light"
+        <FlatList
+          className={`mb-40 border-2 rounded-lg border-green-400 ${
+            colorScheme === "light" ? "bg-gray-100" : "bg-gray-900"
+          }`}
+          data={vagasFiltradas}
+          keyExtractor={(item) =>
+            item?.id_vaga
+              ? item.id_vaga.toString()
+              : item?.id
+              ? item.id.toString()
+              : Math.random().toString()
+          }
+          numColumns={2}
+          contentContainerStyle={{ paddingHorizontal: 8 }}
+          ListEmptyComponent={
+            vagasLoading ? (
+              <Text className="text-center text-gray-400 mt-8">
+                Carregando vagas...
+              </Text>
+            ) : (
+              <Text className="text-center text-gray-400 mt-8">
+                Nenhuma vaga nesta filial.
+              </Text>
+            )
+          }
+          renderItem={({ item }) => {
+            const status = item.status;
+            const isOcupada = status === "OCUPADA";
+            const borderColor = isOcupada
+              ? "border-red-500"
+              : "border-green-500";
+            const textColor = isOcupada
+              ? "text-red-500"
+              : colorScheme === "light"
               ? "text-green-700"
               : "text-green-400";
-          let statusLabel = status === "ocupada" ? "Ocupada" : "Disponível";
+            const statusLabel = isOcupada ? "Ocupada" : "Disponível";
 
-          return (
-            <TouchableOpacity
-              className="flex-1 mt-1 mb-1 items-center"
-              onPress={() => {
-                const moto = motos.find(
-                  (m) => m.vaga === item.codigo && m.patio === nomeFilial
-                );
-                setSelectedVaga(item);
-                setSelectedMoto(moto ?? null);
-                setModalVisible(true);
-              }}
-            >
-              <View className={`w-48 h-32 m-2 justify-center items-center rounded-lg border-2 ${borderColor} ${colorScheme === "light" ? "bg-white" : "bg-gray-800"}`}>
-                <Text className={`text-3xl font-extrabold ${textColor}`}>
-                  Vaga: {item.codigo}
-                </Text>
-                <Text className={`mt-2 text-2xl font-bold ${textColor}`}>
-                  {statusLabel}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
+            return (
+              <TouchableOpacity
+                className="flex-1 mt-1 mb-1 items-center"
+                onPress={() => {
+                  setSelectedVaga(item);
+                  setSelectedMoto(item.moto ?? null);
+                  setModalVisible(true);
+                }}
+              >
+                <View
+                  className={`w-48 h-32 m-2 justify-center items-center rounded-lg border-2 ${borderColor} ${
+                    colorScheme === "light" ? "bg-white" : "bg-gray-800"
+                  }`}
+                >
+                  <Text className={`text-3xl font-extrabold ${textColor}`}>
+                    Vaga: {item.identificacao}
+                  </Text>
+                  <Text className={`mt-2 text-2xl font-bold ${textColor}`}>
+                    {statusLabel}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
       </View>
       {selectedVaga && (
         <VagaInfoModal
@@ -202,7 +243,11 @@ export default function Filial() {
           onDeleteVaga={handleDeleteVaga}
         />
       )}
-      <AddVagaButton onAdd={handleAddVaga} colorScheme={colorScheme} id_patio={Number(id_patio)} />
+      <AddVagaButton
+        onAdd={handleAddVaga}
+        colorScheme={colorScheme}
+        id_patio={Number(id_patio)}
+      />
     </View>
   );
 }
