@@ -6,6 +6,7 @@ import ButtonLogin from "./ButtonLogin";
 import { useRouter } from "expo-router";
 import api from "../services/api"; // ajuste o caminho se necessário
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useMutation } from "@tanstack/react-query";
 
 export function FormLogin() {
   const colorScheme = useColorScheme();
@@ -13,29 +14,44 @@ export function FormLogin() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  async function handleLogin() {
+  const login = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
+    const response = await api.post("/api/auth/login", { email, password });
+    return response.data;
+  };
+
+  const mutation = useMutation({
+    mutationFn: login,
+    onSuccess: (data) => {
+      console.log("Login bem-sucedido:", data); // <-- Adicionado
+      if (data.cargo === "ADMIN") {
+        AsyncStorage.setItem("user", JSON.stringify(data));
+        router.push("/Home");
+      } else if (data.cargo === "OPERADOR_PATIO") {
+        AsyncStorage.setItem("user", JSON.stringify(data));
+        router.push("/DashBoard_Operador");
+      } else {
+        Alert.alert("Cargo não autorizado!");
+      }
+    },
+    onError: (error) => {
+      console.log("Erro no login:", error); // <-- Adicionado
+      Alert.alert("Erro ao conectar com o servidor!");
+    },
+  });
+
+  function handleLogin() {
     if (!email || !password) {
       Alert.alert("Preencha todos os campos");
       return;
     }
 
-    try {
-      const response = await api.post("/api/auth/login", { email, password });
-      const { cargo, idUsuario, email: userEmail } = response.data;
-
-      if (cargo === "ADMIN") {
-        await AsyncStorage.setItem("user", JSON.stringify(response.data));
-        router.push("/Home");
-      } else if (cargo === "OPERADOR_PATIO") {
-        await AsyncStorage.setItem("user", JSON.stringify(response.data));
-        router.push("/DashBoard_Operador");
-      } else {
-        Alert.alert("Cargo não autorizado!");
-      }
-    } catch (error) {
-      Alert.alert("Erro ao conectar com o servidor!");
-      console.log(error);
-    }
+    mutation.mutate({ email, password });
   }
 
   return (
@@ -65,7 +81,7 @@ export function FormLogin() {
         value={password}
         onChangeText={setPassword}
       />
-      <ButtonLogin onPress={handleLogin} />
+      <ButtonLogin onPress={handleLogin} loading={mutation.isPending} />
     </View>
   );
 }
