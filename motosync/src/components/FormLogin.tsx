@@ -27,13 +27,18 @@ export function FormLogin() {
 
   const mutation = useMutation({
     mutationFn: login,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("Login bem-sucedido:", data);
-      if (data.cargo === "ADMIN") {
-        AsyncStorage.setItem("user", JSON.stringify(data));
+      // Salva o accessToken como token principal
+      if (data.accessToken) {
+        await AsyncStorage.setItem("token", data.accessToken);
+      }
+      // Permite acesso para ADMIN
+      if (data.user?.cargo === "ADMIN") {
+        await AsyncStorage.setItem("user", JSON.stringify(data.user));
         router.push("/Home");
-      } else if (data.cargo === "OPERADOR_PATIO") {
-        AsyncStorage.setItem("user", JSON.stringify(data));
+      } else if (data.user?.cargo === "OPERADOR_PATIO") {
+        await AsyncStorage.setItem("user", JSON.stringify(data.user));
         router.push("/DashBoard_Operador");
       } else {
         Alert.alert("Cargo não autorizado!");
