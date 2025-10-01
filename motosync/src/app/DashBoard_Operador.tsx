@@ -5,7 +5,7 @@ import { useColorScheme } from "../hooks/useColorScheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import InfoMotoDashBoard from "../components/InfoMotoDashBoard";
 import { MenuBar } from "../components/MenuBar";
-import Hamburger from "../components/Hamburger";
+import Hamburger from "../components/Hamburger_Operador";
 import patiosData from "../data/patiosMock.json";
 
 // Tipos
@@ -146,27 +146,6 @@ export default function DashBoard_Operador() {
         }`}
         contentContainerStyle={{ padding: 20 }}
       >
-        <Text className="text-lg font-bold text-green-700 text-center">
-          Selecione o Pátio
-        </Text>
-        <View
-          className={`border rounded-lg mb-6 mx-8 ${
-            colorScheme === "light" ? "border-green-700" : "border-green-400"
-          }`}
-        >
-          <Picker
-            selectedValue={patioSelecionado}
-            onValueChange={(itemValue) =>
-              setPatioSelecionado(Number(itemValue))
-            }
-            style={{ color: colorScheme === "light" ? "#000" : "#fff" }}
-          >
-            {patios.map((p) => (
-              <Picker.Item key={p.id_patio} label={p.nome} value={p.id_patio} />
-            ))}
-          </Picker>
-        </View>
-
         <Text className="text-3xl font-bold text-center mt-2 text-green-700">
           {patio?.nome || "Pátio"}
         </Text>
