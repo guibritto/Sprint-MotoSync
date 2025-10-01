@@ -18,7 +18,6 @@ export function FormLogin() {
       Alert.alert("Preencha todos os campos");
       return;
     }
-
     try {
       const response = await api.post("/api/auth/login", { email, password });
       const { cargo, idUsuario, email: userEmail } = response.data;
