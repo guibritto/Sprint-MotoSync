@@ -1,16 +1,21 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, FlatList, Text, TouchableOpacity } from "react-native";
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { SearchHome } from "../components/SearchHome";
-import patiosData from "../data/patiosMock.json";
-import vagasData from "../data/vagasMock.json";
-import motosData from "../data/motosMock.json";
 import { useColorScheme } from "../hooks/useColorScheme";
 import Hamburger from "../components/Hamburger";
 import { MenuBar } from "../components/MenuBar";
 import { AddPatioButton } from "../components/AddPatioButton";
 import { DeletePatioButton } from "../components/DeletePatioButton";
-import { useRouter, useFocusEffect } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "../services/api";
+import { AxiosError } from "axios";
 
 type Patio = {
   id_patio: number;
@@ -35,112 +40,110 @@ type Moto = {
 
 export default function Home() {
   const [search, setSearch] = useState("");
-  const [allPatios, setAllPatios] = useState<Patio[]>([]);
-  const [filteredPatios, setFilteredPatios] = useState<Patio[]>([]);
-  const [allVagas, setAllVagas] = useState<Vaga[]>([]);
-  const [allMotos, setAllMotos] = useState<Moto[]>([]);
-  const [patios, setPatios] = useState<{ nome: string; endereco: string }[]>(
-    []
-  );
   const colorScheme = useColorScheme();
   const [menuVisible, setMenuVisible] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  // Carrega patios, vagas e motos do AsyncStorage + mock
-  const carregarDados = useCallback(async () => {
-    // Patios
-    const storedPatios = await AsyncStorage.getItem("patios");
-    const patiosStorage = storedPatios ? JSON.parse(storedPatios) : [];
-    const nomesStorage = patiosStorage.map((p: any) =>
-      p.nome.trim().toLowerCase()
-    );
-    const patiosMockSemDuplicados = patiosData.filter(
-      (p) => !nomesStorage.includes(p.nome.trim().toLowerCase())
-    );
-    const todosPatios = [...patiosMockSemDuplicados, ...patiosStorage];
-    setAllPatios(todosPatios);
-    setFilteredPatios(
-      todosPatios.filter((patio) =>
+  // Fetch patios
+  const {
+    data: patiosData,
+    isLoading: patiosLoading,
+    error: patiosError,
+  } = useQuery({
+    queryKey: ["patios"],
+    queryFn: async () => {
+      const res = await api.get("/api/patios");
+      console.log("Patios da API:", res.data);
+      return res.data;
+    },
+  });
+
+  // Fetch vagas
+  const {
+    data: vagasData,
+    isLoading: vagasLoading,
+    error: vagasError,
+  } = useQuery({
+    queryKey: ["vagas"],
+    queryFn: async () => {
+      const res = await api.get("/api/vagas");
+      console.log("Vagas da API:", res.data);
+      return res.data;
+    },
+  });
+
+  // Fetch motos
+  const {
+    data: motosData,
+    isLoading: motosLoading,
+    error: motosError,
+  } = useQuery({
+    queryKey: ["motos"],
+    queryFn: async () => {
+      const res = await api.get("/api/motos");
+      console.log("Motos da API:", res.data);
+      return res.data;
+    },
+  });
+
+  // Filtragem de patios
+  const filteredPatios = patiosData
+    ? patiosData.filter((patio: Patio) =>
         patio.nome.toLowerCase().includes(search.toLowerCase())
       )
-    );
+    : [];
 
-    // Vagas
-    const storedVagas = await AsyncStorage.getItem("vagas");
-    const vagasStorage = storedVagas ? JSON.parse(storedVagas) : [];
-    const codigosStorage = vagasStorage.map((v: any) => v.codigo);
-    const vagasMockSemDuplicadas = vagasData.filter(
-      (v) => !codigosStorage.includes(v.codigo)
-    );
-    setAllVagas([...vagasMockSemDuplicadas, ...vagasStorage]);
+  // Adicionar patio
+  const addPatioMutation = useMutation({
+    mutationFn: async (novoPatio: Omit<Patio, "id_patio">) => {
+      const res = await api.post("/api/patios", novoPatio);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patios"] });
+    },
+  });
 
-    // Motos
-    const storedMotos = await AsyncStorage.getItem("motos");
-    const motosStorage = storedMotos ? JSON.parse(storedMotos) : [];
-    setAllMotos([...motosData, ...motosStorage]);
-  }, [search]);
-
-  useEffect(() => {
-    carregarDados();
-  }, [carregarDados]);
-
-  // Carregue os patios do AsyncStorage ao iniciar
-  useEffect(() => {
-    AsyncStorage.getItem("patios").then((data) => {
-      if (data) setPatios(JSON.parse(data));
-    });
-  }, []);
-
-  // Atualiza dados sempre que a tela ganhar foco
-  useFocusEffect(
-    useCallback(() => {
-      carregarDados();
-    }, [carregarDados])
-  );
-
-  // Atualiza patios filtrados ao pesquisar
-  const handleSearch = (text: string) => {
-    setSearch(text);
-    setFilteredPatios(
-      allPatios.filter((patio) =>
-        patio.nome.toLowerCase().includes(text.toLowerCase())
-      )
-    );
-  };
-
-  // Atualiza patios e recarrega dados ao adicionar
   async function handleAddPatio(novoPatio: Omit<Patio, "id_patio">) {
-    const stored = await AsyncStorage.getItem("patios");
-    const patiosStorage = stored ? JSON.parse(stored) : [];
-    // Gera id único considerando mock + storage
-    const ids = [...patiosData, ...patiosStorage].map((p: any) => p.id_patio);
-    let newId = 1;
-    while (ids.includes(newId)) newId++;
-    const patioComId = { ...novoPatio, id_patio: newId };
-    const novosPatios = [...patiosStorage, patioComId];
-    setPatios(novosPatios);
-    await AsyncStorage.setItem("patios", JSON.stringify(novosPatios));
-    await carregarDados();
+    addPatioMutation.mutate(novoPatio);
   }
 
-  // Atualiza patios ao deletar
+  // Deletar patio
+  const deletePatioMutation = useMutation({
+    mutationFn: async (nome: string) => {
+      const patio = patiosData.find((p: Patio) => p.nome === nome);
+      if (patio) {
+        await api.delete(`/api/patios/${patio.id_patio}`);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patios"] });
+    },
+  });
+
   async function handleDeletePatio(nome: string) {
-    const novosPatios = allPatios.filter(
-      (p) => p.nome.trim().toLowerCase() !== nome.trim().toLowerCase()
-    );
-    await AsyncStorage.setItem("patios", JSON.stringify(novosPatios));
-    await carregarDados();
+    deletePatioMutation.mutate(nome);
   }
 
   // Função para calcular info das vagas em tempo real
   function getVagasInfo(id_patio: number) {
-    const vagas = allVagas.filter((v) => v.id_patio === id_patio);
-    const sessoes = [...new Set(vagas.map((v) => v.codigo[0]))];
-    const patioNome = allPatios.find((p) => p.id_patio === id_patio)?.nome;
+    if (!vagasData || !motosData || !patiosData)
+      return {
+        totalVagas: 0,
+        sessoes: [],
+        totalSessoes: 0,
+        vagasDisponiveis: 0,
+      };
+    const vagas = vagasData.filter((v: Vaga) => v.id_patio === id_patio);
+    const sessoes = [...new Set(vagas.map((v: Vaga) => v.codigo[0]))];
+    const patioNome = patiosData.find(
+      (p: Patio) => p.id_patio === id_patio
+    )?.nome;
     const vagasDisponiveis = vagas.filter(
-      (vaga) =>
-        !allMotos.find(
-          (m) =>
+      (vaga: Vaga) =>
+        !motosData.find(
+          (m: Moto) =>
             m.vaga === vaga.codigo &&
             m.patio === patioNome &&
             (m.status === "Disponível" || m.status === "Manutenção")
@@ -154,13 +157,59 @@ export default function Home() {
     };
   }
 
+  // Loading/Error states
+  if (patiosLoading || vagasLoading || motosLoading) {
+    return (
+      <View
+        className={`flex-1 items-center justify-center ${
+          colorScheme === "light" ? "bg-white" : "bg-black"
+        }`}
+      >
+        <ActivityIndicator size="large" color="#16a34a" />
+        <Text className="mt-4 text-lg text-green-700">
+          Carregando dados da API...
+        </Text>
+      </View>
+    );
+  }
+
+  if (patiosError || vagasError || motosError) {
+    const error = patiosError || vagasError || motosError;
+
+    let errorMsg = "Erro ao carregar dados da API.";
+    if (error instanceof AxiosError) {
+      if (error.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+    } else if (error?.message) {
+      errorMsg = error.message;
+    }
+
+    console.log("Erro detalhado:", error);
+
+    return (
+      <View
+        className={`flex-1 items-center justify-center ${
+          colorScheme === "light" ? "bg-white" : "bg-black"
+        }`}
+      >
+        <Text className="text-red-600 text-lg">{errorMsg}</Text>
+        <Text className="text-gray-400 mt-2 text-xs">
+          Veja detalhes no console.
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View
       className={`flex-1 ${colorScheme === "light" ? "bg-white" : "bg-black"}`}
     >
       <MenuBar onMenuPress={() => setMenuVisible(true)} title="Patios" />
       <Hamburger visible={menuVisible} onClose={() => setMenuVisible(false)} />
-      <SearchHome value={search} onChangeText={handleSearch} />
+      <SearchHome value={search} onChangeText={setSearch} />
       <View className="px-2 mb-60">
         <FlatList
           data={filteredPatios}
@@ -244,7 +293,7 @@ export default function Home() {
       <AddPatioButton
         onAdd={handleAddPatio}
         colorScheme={colorScheme}
-        patios={allPatios}
+        patios={filteredPatios}
       />
     </View>
   );
