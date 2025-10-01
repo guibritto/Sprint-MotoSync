@@ -4,8 +4,7 @@ import { Input } from "./InputLogin";
 import { useState } from "react";
 import ButtonLogin from "./ButtonLogin";
 import { useRouter } from "expo-router";
-import api from "../services/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../services/api"; // ajuste o caminho se necessário
 
 export function FormLogin() {
   const colorScheme = useColorScheme();
@@ -19,23 +18,22 @@ export function FormLogin() {
       return;
     }
 
-    try {
-      const response = await api.post("/api/auth/login", { email, password });
-      const { cargo, idUsuario, email: userEmail } = response.data;
-
-      if (cargo === "ADMIN") {
-        await AsyncStorage.setItem("user", JSON.stringify(response.data));
-        router.push("/Home");
-      } else if (cargo === "OPERADOR_PATIO") {
-        await AsyncStorage.setItem("user", JSON.stringify(response.data));
-        router.push("/DashBoard_Operador");
-      } else {
-        Alert.alert("Cargo não autorizado!");
-      }
-    } catch (error) {
-      Alert.alert("Erro ao conectar com o servidor!");
-      console.log(error);
-    }
+    // Chamada real para a API
+    api
+      .post("/login", { email, password })
+      .then((response) => {
+        // Supondo que a API retorna sucesso no login
+        if (response.data.success) {
+          router.push("/Home");
+        } else {
+          Alert.alert("E-mail ou senha inválidos!");
+          console.log(response.data); // Log para depuração
+        }
+      })
+      .catch((error) => {
+        Alert.alert("Erro ao conectar com o servidor!");
+        console.log(error); // Adicione para ver detalhes do erro
+      });
   }
 
   return (
