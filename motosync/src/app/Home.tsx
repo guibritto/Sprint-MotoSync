@@ -139,19 +139,36 @@ export default function Home() {
         totalSessoes: 0,
         vagasDisponiveis: 0,
       };
+
+    // Garante que vagasData seja sempre um array
     const vagasArray = Array.isArray(vagasData?.content)
       ? vagasData.content
       : Array.isArray(vagasData)
       ? vagasData
       : [];
-    const vagas = vagasArray.filter((v: Vaga) => v.id_patio === id_patio);
-    const sessoes = [...new Set(vagas.map((v: Vaga) => v.codigo[0]))];
-    const patioNome = patiosData.find(
+    const vagas = vagasArray.filter((v: Vaga) => v && v.id_patio === id_patio);
+
+    // Garante que patiosData seja sempre um array
+    const patiosArray = Array.isArray(patiosData?.content)
+      ? patiosData.content
+      : Array.isArray(patiosData)
+      ? patiosData
+      : [];
+    const patioNome = patiosArray.find(
       (p: Patio) => p.id_patio === id_patio
     )?.nome;
+
+    // Garante que motosData seja sempre um array
+    const motosArray = Array.isArray(motosData?.content)
+      ? motosData.content
+      : Array.isArray(motosData)
+      ? motosData
+      : [];
+
+    const sessoes = [...new Set(vagas.map((v: Vaga) => v.codigo?.[0]))];
     const vagasDisponiveis = vagas.filter(
       (vaga: Vaga) =>
-        !motosData.find(
+        !motosArray.find(
           (m: Moto) =>
             m.vaga === vaga.codigo &&
             m.patio === patioNome &&
