@@ -101,14 +101,6 @@ export function VagaInfoModal({
                     colorScheme === "light" ? "text-gray-800" : "text-gray-200"
                   }`}
                 >
-                  <Text className="font-bold">Modelo:</Text>{" "}
-                  {(vaga.moto?.modelo || moto?.modelo) ?? "-"}
-                </Text>
-                <Text
-                  className={`mb-2 text-xl ${
-                    colorScheme === "light" ? "text-gray-800" : "text-gray-200"
-                  }`}
-                >
                   <Text className="font-bold">Status da Moto:</Text>{" "}
                   {(vaga.moto?.status || moto?.status) ?? "-"}
                 </Text>
