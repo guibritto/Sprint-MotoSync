@@ -10,12 +10,21 @@ type Props = {
   onStatusChange: (status: string | null) => void;
 };
 
-export function SearchBarMoto({ value, onChangeText, statusFiltro, onStatusChange }: Props) {
+export function SearchBarMoto({
+  value,
+  onChangeText,
+  statusFiltro,
+  onStatusChange,
+}: Props) {
   const colorScheme = useColorScheme();
 
   return (
     <View className="px-2 mt-8 mb-2">
-      <View className={`flex-row items-center justify-center w-full mx-auto rounded-lg border-2 border-green-400 p-2 mt-4 mb-4 ${colorScheme === "light" ? "bg-gray-100" : "bg-gray-800"}`}>
+      <View
+        className={`flex-row items-center justify-center w-full mx-auto rounded-lg border-2 border-green-400 p-2 mt-4 mb-4 ${
+          colorScheme === "light" ? "bg-gray-100" : "bg-gray-800"
+        }`}
+      >
         <TextInput
           className="flex-1 ml-2 mb-1 text-xl text-green-400"
           placeholder="Buscar por placa ou modelo"
@@ -28,23 +37,34 @@ export function SearchBarMoto({ value, onChangeText, statusFiltro, onStatusChang
         <Feather name="search" size={24} color="#289128" />
       </View>
       <View className="flex-row justify-center mb-2 gap-2">
-        {["Disponível", "Alugada", "Manutenção"].map(status => {
+        {["DISPONIVEL", "INATIVADA", "EM_MANUTENCAO"].map((status) => {
+          // Mapeia para exibição amigável
+          const statusLabel =
+            status === "DISPONIVEL"
+              ? "Disponível"
+              : status === "INATIVADA"
+              ? "Inativada"
+              : status === "EM_MANUTENCAO"
+              ? "Em Manutenção"
+              : status;
           // Defina a cor de fundo quando selecionado
           const backgroundColor =
             statusFiltro === status
-              ? status === "Disponível"
+              ? status === "DISPONIVEL"
                 ? "#22c55e"
-                : status === "Alugada"
-                  ? "#ef4444"
-                  : status === "Manutenção"
-                    ? "#f59e42"
-                    : "#e5e7eb"
+                : status === "INATIVADA"
+                ? "#ef4444"
+                : status === "EM_MANUTENCAO"
+                ? "#f59e42"
+                : "#e5e7eb"
               : "#e5e7eb";
 
           return (
             <TouchableOpacity
               key={status}
-              onPress={() => onStatusChange(statusFiltro === status ? null : status)}
+              onPress={() =>
+                onStatusChange(statusFiltro === status ? null : status)
+              }
               style={{
                 backgroundColor,
                 borderRadius: 8,
@@ -53,13 +73,13 @@ export function SearchBarMoto({ value, onChangeText, statusFiltro, onStatusChang
                 marginHorizontal: 4,
                 borderWidth: 2,
                 borderColor:
-                  status === "Disponível"
+                  status === "DISPONIVEL"
                     ? "#22c55e"
-                    : status === "Alugada"
-                      ? "#ef4444"
-                      : status === "Manutenção"
-                        ? "#f59e42"
-                        : "#e5e7eb",
+                    : status === "INATIVADA"
+                    ? "#ef4444"
+                    : status === "EM_MANUTENCAO"
+                    ? "#f59e42"
+                    : "#e5e7eb",
               }}
             >
               <Text
@@ -68,7 +88,7 @@ export function SearchBarMoto({ value, onChangeText, statusFiltro, onStatusChang
                   fontWeight: "bold",
                 }}
               >
-                {status}
+                {statusLabel}
               </Text>
             </TouchableOpacity>
           );
