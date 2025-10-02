@@ -37,9 +37,6 @@ export function FormLogin() {
       if (data.user?.cargo === "ADMIN") {
         await AsyncStorage.setItem("user", JSON.stringify(data.user));
         router.push("/Home");
-      } else if (data.user?.cargo === "OPERADOR_PATIO") {
-        await AsyncStorage.setItem("user", JSON.stringify(data.user));
-        router.push("/DashBoard_Operador");
       } else {
         Alert.alert("Cargo não autorizado!");
       }

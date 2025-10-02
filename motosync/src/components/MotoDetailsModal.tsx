@@ -1,7 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { Modal, Pressable, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import motosMock from "../data/motosMock.json";
 import patiosMock from "../data/patiosMock.json";
 import { useColorScheme } from "../hooks/useColorScheme";
@@ -21,6 +28,7 @@ interface MotoDetailsModalProps {
   moto: Moto | null;
   onClose: () => void;
   onSave: (moto: Moto) => void;
+  motosExistentes: any[];
 }
 
 // Função para determinar status e cor
@@ -39,7 +47,11 @@ const REGEX_PLACA = /^([A-Z]{3}[0-9][A-Z][0-9]{2}|[A-Z]{3}[0-9]{4})$/i;
 const REGEX_VAGA = /^[A-Z][0-9]{2}$/i; // Exemplo: A01
 
 // Função para checar se a vaga está ocupada por outra moto (no AsyncStorage ou mock)
-async function checarVagaOcupada(patio: string, vaga: string, idAtual?: string) {
+async function checarVagaOcupada(
+  patio: string,
+  vaga: string,
+  idAtual?: string
+) {
   if (!patio.trim() || !vaga.trim()) return false;
   const stored = await AsyncStorage.getItem("motos");
   const motos = stored ? JSON.parse(stored) : [];
@@ -126,8 +138,16 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
       const patioObj = patiosAll.find(
         (p: any) =>
           p.nome &&
-          p.nome.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
-          patio.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          p.nome
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") ===
+            patio
+              .trim()
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
       );
       if (!patioObj) {
         setVagasValidas([]);
@@ -152,12 +172,17 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
   const { status, color } = getStatusInfo(patio, vaga, manutencao);
 
   const handleSave = async () => {
-    const modeloValido = MODELOS_PERMITIDOS.includes(modelo.trim().toUpperCase());
+    const modeloValido = MODELOS_PERMITIDOS.includes(
+      modelo.trim().toUpperCase()
+    );
     const placaValida = REGEX_PLACA.test(placa.trim().toUpperCase());
     const vagaValida =
       (vaga.trim() === "" && patio.trim() === "") ||
-      (vaga.trim() !== "" && patio.trim() !== "" && REGEX_VAGA.test(vaga.trim().toUpperCase()));
-    const patioValido = patio.trim() === "" || patiosValidos.includes(patio.trim().toUpperCase());
+      (vaga.trim() !== "" &&
+        patio.trim() !== "" &&
+        REGEX_VAGA.test(vaga.trim().toUpperCase()));
+    const patioValido =
+      patio.trim() === "" || patiosValidos.includes(patio.trim().toUpperCase());
     const vagaValidaNoPatio =
       !vaga.trim() ||
       (vaga.trim() && vagasValidas.includes(vaga.trim().toUpperCase()));
@@ -181,7 +206,14 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
     setErroVaga(!vagaValidaNoPatio);
 
     // Não permite cadastrar vaga sem pátio
-    if (!modeloValido || !placaValida || !vagaValida || !patioValido || (vaga.trim() && !patio.trim())) return;
+    if (
+      !modeloValido ||
+      !placaValida ||
+      !vagaValida ||
+      !patioValido ||
+      (vaga.trim() && !patio.trim())
+    )
+      return;
 
     const updatedMoto = {
       ...moto!,
@@ -210,8 +242,16 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
     const patioObj = patiosAll.find(
       (p: any) =>
         p.nome &&
-        p.nome.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
-        patio.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        p.nome
+          .trim()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") ===
+          patio
+            .trim()
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
     );
     if (patioObj) {
       const idPatio = patioObj.id_patio ?? patioObj.id;
@@ -220,23 +260,37 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
 
       // Marca a nova vaga como ocupada
       vagasStorage = vagasStorage.map((v: any) =>
-        String(v.id_patio) === String(idPatio) && v.codigo.toUpperCase() === vaga.trim().toUpperCase()
+        String(v.id_patio) === String(idPatio) &&
+        v.codigo.toUpperCase() === vaga.trim().toUpperCase()
           ? { ...v, ocupada: true }
           : v
       );
 
       // Libera a vaga antiga, se mudou de vaga ou pátio
-      if (moto?.vaga && moto?.patio && (moto.vaga !== vaga || moto.patio !== patio)) {
+      if (
+        moto?.vaga &&
+        moto?.patio &&
+        (moto.vaga !== vaga || moto.patio !== patio)
+      ) {
         const patioAntigoObj = patiosAll.find(
           (p: any) =>
             p.nome &&
-            p.nome.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ===
-            moto.patio?.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            p.nome
+              .trim()
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "") ===
+              moto.patio
+                ?.trim()
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
         );
         if (patioAntigoObj) {
           const idPatioAntigo = patioAntigoObj.id_patio ?? patioAntigoObj.id;
           vagasStorage = vagasStorage.map((v: any) =>
-            String(v.id_patio) === String(idPatioAntigo) && v.codigo.toUpperCase() === moto.vaga?.trim().toUpperCase()
+            String(v.id_patio) === String(idPatioAntigo) &&
+            v.codigo.toUpperCase() === moto.vaga?.trim().toUpperCase()
               ? { ...v, ocupada: false }
               : v
           );
@@ -257,12 +311,14 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
     <Modal visible={visible} animationType="slide" transparent>
       <View className="flex-1 justify-center items-center bg-black/60">
         <View
-          className={`w-11/12 rounded-xl p-6 ${isDark ? "bg-gray-800" : "bg-white"
-            }`}
+          className={`w-11/12 rounded-xl p-6 ${
+            isDark ? "bg-gray-800" : "bg-white"
+          }`}
         >
           <Text
-            className={`text-2xl font-bold mb-4 ${isDark ? "text-green-500" : "text-green-600"
-              }`}
+            className={`text-2xl font-bold mb-4 ${
+              isDark ? "text-green-500" : "text-green-600"
+            }`}
           >
             Editar Moto
           </Text>
@@ -271,14 +327,15 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
             Status: {status}
           </Text>
           <TextInput
-            className={`border-b-2 px-2 text-xl py-2 mb-1 ${isDark
-              ? "border-green-600 text-gray-200 font-bold bg-gray-800"
-              : "border-green-600 text-black bg-white"
-              }`}
+            className={`border-b-2 px-2 text-xl py-2 mb-1 ${
+              isDark
+                ? "border-green-600 text-gray-200 font-bold bg-gray-800"
+                : "border-green-600 text-black bg-white"
+            }`}
             placeholder="Modelo (POP, SPORT ou E)"
             placeholderTextColor={isDark ? "#aaa" : "#888"}
             value={modelo.toUpperCase()}
-            onChangeText={text => {
+            onChangeText={(text) => {
               setModelo(text.replace(/[^a-zA-Z]/g, "").toUpperCase());
               setErroModelo(false);
             }}
@@ -290,33 +347,33 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
             </Text>
           )}
           <TextInput
-            className={`border-b-2 px-2 text-xl py-2 mb-1 ${isDark
-              ? "border-green-600 text-gray-200 font-bold bg-gray-800"
-              : "border-green-600 text-black bg-white"
-              }`}
+            className={`border-b-2 px-2 text-xl py-2 mb-1 ${
+              isDark
+                ? "border-green-600 text-gray-200 font-bold bg-gray-800"
+                : "border-green-600 text-black bg-white"
+            }`}
             placeholder="Placa (ex: ABC1D23 ou ABC1234)"
             placeholderTextColor={isDark ? "#aaa" : "#888"}
             value={placa.toUpperCase()}
-            onChangeText={text => {
+            onChangeText={(text) => {
               setPlaca(text.toUpperCase());
               setErroPlaca(false);
             }}
             maxLength={7}
           />
           {erroPlaca && (
-            <Text className="text-red-500 text-xs mb-2">
-              Placa inválida
-            </Text>
+            <Text className="text-red-500 text-xs mb-2">Placa inválida</Text>
           )}
           <TextInput
-            className={`border-b-2 px-2 text-xl py-2 mb-1 ${isDark
-              ? "border-green-600 text-gray-200 font-bold bg-gray-800"
-              : "border-green-600 text-black bg-white"
-              }`}
+            className={`border-b-2 px-2 text-xl py-2 mb-1 ${
+              isDark
+                ? "border-green-600 text-gray-200 font-bold bg-gray-800"
+                : "border-green-600 text-black bg-white"
+            }`}
             placeholder="Pátio (ex: Butantã)"
             placeholderTextColor={isDark ? "#aaa" : "#888"}
             value={patio}
-            onChangeText={text => {
+            onChangeText={(text) => {
               setPatio(text);
               setErroPatio(false);
               // Não checa vaga ocupada ao digitar!
@@ -328,14 +385,15 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
             </Text>
           )}
           <TextInput
-            className={`border-b-2 px-2 text-xl py-2 mb-1 ${isDark
-              ? "border-green-600 text-gray-200 font-bold bg-gray-800"
-              : "border-green-600 text-black bg-white"
-              }`}
+            className={`border-b-2 px-2 text-xl py-2 mb-1 ${
+              isDark
+                ? "border-green-600 text-gray-200 font-bold bg-gray-800"
+                : "border-green-600 text-black bg-white"
+            }`}
             placeholder="Vaga (ex: A01)"
             placeholderTextColor={isDark ? "#aaa" : "#888"}
             value={vaga.toUpperCase()}
-            onChangeText={text => {
+            onChangeText={(text) => {
               setVaga(text.toUpperCase());
               setErroVaga(false);
               // Não checa vaga ocupada ao digitar!
@@ -343,15 +401,15 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
             maxLength={3}
           />
           {erroVaga && (
-            <Text className="text-red-500 text-xs mb-2">
-              Vaga inválida
-            </Text>
+            <Text className="text-red-500 text-xs mb-2">Vaga inválida</Text>
           )}
-          {!erroVaga && vaga.trim() && !vagasValidas.includes(vaga.trim().toUpperCase()) && (
-            <Text className="text-red-500 text-xs mb-2">
-              Vaga não cadastrada para este pátio.
-            </Text>
-          )}
+          {!erroVaga &&
+            vaga.trim() &&
+            !vagasValidas.includes(vaga.trim().toUpperCase()) && (
+              <Text className="text-red-500 text-xs mb-2">
+                Vaga não cadastrada para este pátio.
+              </Text>
+            )}
           {erroVagaOcupada && (
             <Text className="text-red-500 text-xs mb-2">
               Já existe uma moto cadastrada nesta vaga e pátio.
@@ -370,26 +428,46 @@ export const MotoDetailsModal: React.FC<MotoDetailsModalProps> = ({
               onPress={() => setManutencao(!manutencao)}
               activeOpacity={0.7}
             >
-              <View className={`w-6 h-6 mr-2 rounded border-2 ${manutencao ? "bg-orange-400 border-orange-400" : "border-gray-400"} items-center justify-center`}>
-                {manutencao && <Ionicons name="checkmark" size={18} color="#fff" />}
+              <View
+                className={`w-6 h-6 mr-2 rounded border-2 ${
+                  manutencao
+                    ? "bg-orange-400 border-orange-400"
+                    : "border-gray-400"
+                } items-center justify-center`}
+              >
+                {manutencao && (
+                  <Ionicons name="checkmark" size={18} color="#fff" />
+                )}
               </View>
-              <Text className={`text-lg ${isDark ? "text-gray-200" : "text-gray-800"}`}>Moto está para manutenção</Text>
+              <Text
+                className={`text-lg ${
+                  isDark ? "text-gray-200" : "text-gray-800"
+                }`}
+              >
+                Moto está para manutenção
+              </Text>
             </TouchableOpacity>
           )}
 
           <View className="flex-row justify-between mt-2">
             <Pressable
-              className={`px-5 py-3 rounded ${isDark ? "bg-neutral-700" : "bg-neutral-200"
-                }`}
+              className={`px-5 py-3 rounded ${
+                isDark ? "bg-neutral-700" : "bg-neutral-200"
+              }`}
               onPress={onClose}
             >
-              <Text className={`${isDark ? "text-white" : "text-neutral-900"} text-xl font-semibold`}>
+              <Text
+                className={`${
+                  isDark ? "text-white" : "text-neutral-900"
+                } text-xl font-semibold`}
+              >
                 Cancelar
               </Text>
             </Pressable>
             <Pressable
-              className={`px-8 py-3 rounded ${isDark ? "bg-green-700" : "bg-blue-500"
-                }`}
+              className={`px-8 py-3 rounded ${
+                isDark ? "bg-green-700" : "bg-blue-500"
+              }`}
               onPress={handleSave}
             >
               <Text className="text-white text-xl font-semibold">Salvar</Text>

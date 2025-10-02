@@ -43,6 +43,8 @@ function getFlatListBorderClass(status: string | null) {
 }
 
 export default function Motos() {
+  // State para motos adicionadas manualmente
+  const [motos, setMotos] = useState<Moto[]>([]);
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedMoto, setSelectedMoto] = useState<Moto | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
@@ -226,7 +228,7 @@ export default function Motos() {
             vaga: novaMoto.vaga?.trim().toUpperCase() || undefined,
             status: novaMoto.status,
           };
-          setMotos((prev) => [...prev, updatedMoto]);
+          setMotos((prev: Moto[]) => [...prev, updatedMoto]);
         }}
         colorScheme={colorScheme}
       />

@@ -15,8 +15,15 @@ import { SearchVaga } from "../../components/SearchVaga";
 
 export default function Filial() {
   type Vaga = {
-    id_vaga: number;
-    codigo: string;
+    id: number;
+    identificacao: string;
+    patioId: string;
+    patioNome: string;
+    status: string | null;
+    moto?: Moto | null;
+    // campos extras para compatibilidade
+    id_vaga?: number;
+    codigo?: string;
     id_patio?: number;
     vaga?: Vaga | null;
   };
@@ -105,9 +112,7 @@ export default function Filial() {
     if (novaVaga.id_patio == id_patio || !novaVaga.id_patio) {
       await api.post("/api/vagas", novaVaga);
       // Invalida query para atualizar lista
-      // @ts-ignore
-      if (window.queryClient)
-        window.queryClient.invalidateQueries(["vagas", id_patio]);
+      queryClient.invalidateQueries({ queryKey: ["vagas", String(id_patio)] });
     }
   }
 
@@ -115,18 +120,16 @@ export default function Filial() {
   async function handleDeleteVaga(id_vaga: number) {
     await api.delete(`/api/vagas/${id_vaga}`);
     // Invalida query para atualizar lista
-    // @ts-ignore
-    if (window.queryClient)
-      window.queryClient.invalidateQueries(["vagas", id_patio]);
+    queryClient.invalidateQueries({ queryKey: ["vagas", String(id_patio)] });
     setModalVisible(false);
     setSelectedVaga(null);
     setSelectedMoto(null);
   }
 
-  const vagasFiltradas = vagasData
+  const vagasFiltradas = (Array.isArray(vagasData) ? vagasData : [])
     .filter(
       (vaga) =>
-        vaga.identificacao.toUpperCase().includes(searchVaga.toUpperCase()) &&
+        vaga.identificacao?.toUpperCase().includes(searchVaga.toUpperCase()) &&
         (statusFiltro === "todas" ||
           (statusFiltro === "ocupada" && vaga.status === "OCUPADA") ||
           (statusFiltro === "disponivel" && vaga.status === "LIVRE"))

@@ -54,9 +54,7 @@ export default function Hamburger({
   }
 
   // Animação ao navegar para outra tela
-  function handleNavigate(
-    path: "/Home" | "/Motos" | "/Cadastro" | "/DashBoard"
-  ) {
+  function handleNavigate(path: "/Home" | "/Motos") {
     if (pathname !== path) {
       animateAndClose(() => router.push(path));
     } else {
@@ -108,16 +106,7 @@ export default function Hamburger({
               Motos
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleNavigate("/Cadastro")}>
-            <Text className="font-bold text-green-400 text-4xl mt-8 mb-4">
-              Cadastro
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleNavigate("/DashBoard")}>
-            <Text className="font-bold text-green-400 text-4xl mt-8">
-              DashBoard
-            </Text>
-          </TouchableOpacity>
+
           <View style={{ flex: 1 }} />
           <TouchableOpacity
             onPress={handleLogout}

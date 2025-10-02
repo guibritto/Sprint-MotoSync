@@ -3,7 +3,7 @@ import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { useColorScheme } from "../hooks/useColorScheme";
 
 type Vaga = {
-  id: string;
+  id: number;
   identificacao: string;
   patioId: string;
   patioNome: string;
@@ -24,7 +24,7 @@ type VagaInfoModalProps = {
   vaga: Vaga;
   moto?: Moto | null;
   nomePatio?: string;
-  onDeleteVaga: (id: string) => void;
+  onDeleteVaga: (id: number) => void;
 };
 
 export function VagaInfoModal({

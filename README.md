@@ -6,6 +6,17 @@ O MotoSync é um aplicativo para gestão de pátios, vagas e motos, permitindo o
 
 ---
 
+### Credenciais teste:
+
+email: thiago@email.com
+senha: 123456
+
+---
+
+Link do Vídeo no YT: `https://youtube.com/shorts/n7o1DGywWGw`
+
+---
+
 ## Estrutura do Projeto
 
 ```
@@ -15,8 +26,6 @@ src/
     Motos.tsx
     Participantes.tsx
     index.tsx
-    DashBoard.tsx
-    DashBoard_Operador.tsx
     Filial/
       [id_patio].tsx
       _layout.tsx
@@ -84,22 +93,7 @@ src/
   - Cadastro de novas motos (com validação em todos os campos).
   - Modal para detalhes e edição.
 
-### 4. `DashBoard.tsx`
-
-- **Função:** Exibir o mapa do pátio com opção de escolha do pátio.
-- **Funcionalidades:**
-  - Lista as vagas do pátio selecionado, permitindo visualizar as vagas ocupadas, disponíveis ou com ocorrência.
-  - Permite selecionar o pátio que terá seu mapa settado para visualizar.
-  - Ao clicar na vaga você terá informações dela.
-
-### 5. `DashBoard_Operador.tsx`
-
-- **Função:** Exibir o mapa do pátio daquele operador.
-- **Funcionalidades:**
-  - Lista as vagas do pátio que o operador trabalha.
-  - Ao clicar na vaga você terá informações dela.
-
-### 6. `Filial/[id_patio].tsx`
+### 4. `Filial/[id_patio].tsx`
 
 - **Função:** Exibe as vagas de um pátio específico.
 - **Funcionalidades:**
@@ -109,7 +103,7 @@ src/
   - Exclusão de vagas (somente se a vaga não possui motos alocadas).
   - Atualização automática ao adicionar/excluir vagas ou motos.
 
-### 7. `Participantes.tsx`
+### 5. `Participantes.tsx`
 
 - **Função:** Exibe os participantes do projeto.
 - **Funcionalidades:**
@@ -303,4 +297,3 @@ Desenvolvido por:
 - Vinicius Banciela -RM558117
 
 ---
-
